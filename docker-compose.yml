@@ -1,0 +1,66 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: survey-postgres
+    environment:
+      POSTGRES_DB: organization_survey
+      POSTGRES_USER: survey_user
+      POSTGRES_PASSWORD: survey_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/init:/docker-entrypoint-initdb.d
+    networks:
+      - survey-network
+
+  # Backend API (Node.js + Fastify)
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: survey-backend
+    environment:
+      NODE_ENV: development
+      DATABASE_URL: postgresql://survey_user:survey_password@postgres:5432/organization_survey
+      PORT: 3001
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    depends_on:
+      - postgres
+    networks:
+      - survey-network
+    command: npm run dev
+
+  # Frontend (React + TypeScript + Vite)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: survey-frontend
+    environment:
+      NODE_ENV: development
+      VITE_API_URL: http://localhost:3001
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    depends_on:
+      - backend
+    networks:
+      - survey-network
+    command: npm run dev
+
+volumes:
+  postgres_data:
+
+networks:
+  survey-network:
+    driver: bridge

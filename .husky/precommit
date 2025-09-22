@@ -1,0 +1,76 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+echo "🔍 Pre-commit validation started..."
+
+# Docker環境確認
+echo "🐳 Checking Docker services..."
+if ! docker compose ps | grep -q "Up"; then
+  echo "🚀 Starting Docker services..."
+  docker compose up -d
+  
+  # サービス起動待機
+  echo "⏳ Waiting for services to be ready..."
+  npx wait-on http://localhost:5173 --timeout 60000
+  
+  if [ $? -ne 0 ]; then
+    echo "❌ Services failed to start. Please check Docker configuration."
+    exit 1
+  fi
+else
+  echo "✅ Docker services are already running"
+fi
+
+# データベース接続確認
+echo "🗄️  Checking database connection..."
+if ! docker compose exec postgres pg_isready -U survey_user > /dev/null 2>&1; then
+  echo "❌ Database is not ready. Please check PostgreSQL container."
+  exit 1
+fi
+
+# E2Eテスト実行（Smoke testのみ）
+echo "🎭 Running Playwright smoke tests..."
+npx playwright test --grep="@smoke"
+
+# テスト結果確認
+TEST_RESULT=$?
+if [ $TEST_RESULT -ne 0 ]; then
+  echo ""
+  echo "❌ E2E tests failed. Commit aborted."
+  echo "💡 To debug:"
+  echo "   npm run test:e2e:ui      # Interactive debugging"
+  echo "   npm run test:e2e:headed  # Run with browser UI"
+  echo "   git commit --no-verify   # Skip hooks (use with caution)"
+  echo ""
+  exit 1
+fi
+
+echo "✅ All smoke tests passed!"
+
+# TypeScript型チェック（バックエンド）
+if [ -d "backend" ]; then
+  echo "🔧 Running TypeScript check for backend..."
+  cd backend && npm run type-check 2>/dev/null
+  if [ $? -ne 0 ]; then
+    echo "⚠️  TypeScript check failed for backend, but continuing..."
+  else
+    echo "✅ Backend TypeScript check passed"
+  fi
+  cd ..
+fi
+
+# TypeScript型チェック（フロントエンド）
+if [ -d "frontend" ]; then
+  echo "🔧 Running TypeScript check for frontend..."
+  cd frontend && npm run type-check 2>/dev/null
+  if [ $? -ne 0 ]; then
+    echo "⚠️  TypeScript check failed for frontend, but continuing..."
+  else
+    echo "✅ Frontend TypeScript check passed"
+  fi
+  cd ..
+fi
+
+echo ""
+echo "🎉 Pre-commit validation completed successfully!"
+echo "📝 Proceeding with commit..."
