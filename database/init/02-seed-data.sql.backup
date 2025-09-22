@@ -1,0 +1,11 @@
+-- 組織調査ツール シードデータ
+-- Organization Survey Tool Seed Data
+
+-- カテゴリマスタデータの投入
+\i '../seeds/01-categories.sql'
+
+-- 質問マスタデータの投入
+\i '../seeds/02-questions.sql'
+
+-- サンプル調査データの投入
+\i '../seeds/03-sample-survey.sql'
