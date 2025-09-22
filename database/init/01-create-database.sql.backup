@@ -1,0 +1,28 @@
+-- 組織調査ツール データベース初期化スクリプト
+-- Organization Survey Tool Database Initialization
+-- PostgreSQL 15対応
+
+-- データベース作成（通常はDocker Composeで作成済み）
+-- CREATE DATABASE organization_survey;
+
+-- 拡張機能の有効化
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+CREATE EXTENSION IF NOT EXISTS "pgcrypto";
+
+-- スキーマの適用
+-- 本番環境では個別にスキーマファイルを実行
+\i '../schema/01-create-tables.sql'
+\i '../schema/02-create-indexes.sql'
+\i '../schema/03-create-triggers.sql'
+
+-- マイグレーション管理テーブル
+CREATE TABLE IF NOT EXISTS schema_migrations (
+    version VARCHAR(50) PRIMARY KEY,
+    description TEXT,
+    applied_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 初期マイグレーション記録
+INSERT INTO schema_migrations (version, description)
+VALUES ('001', 'Initial database schema with tables, indexes, and triggers')
+ON CONFLICT (version) DO NOTHING;
