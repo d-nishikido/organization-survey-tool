@@ -11,7 +11,7 @@ export class SurveyService {
   static async getSurveys(params?: {
     page?: number;
     pageSize?: number;
-    status?: 'draft' | 'active' | 'completed';
+    status?: 'draft' | 'active' | 'closed' | 'archived';
   }): Promise<PaginatedResponse<Survey>> {
     return apiClient.get<PaginatedResponse<Survey>>(this.BASE_PATH, { params });
   }
