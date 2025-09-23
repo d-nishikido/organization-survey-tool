@@ -26,7 +26,8 @@
     "@hookform/resolvers": "^3.3.2",
     "recharts": "^2.10.3",
     "date-fns": "^2.30.0",
-    "clsx": "^2.0.0"
+    "clsx": "^2.0.0",
+    "zustand": "^5.0.8"
   },
   "devDependencies": {
     "@types/node": "^20.10.5",

@@ -1,6 +1,13 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from 'react-query';
+import { ThemeProvider } from '@/contexts/ThemeContext';
+import { AuthProvider } from '@/contexts/AuthContext';
+import { ProtectedRoute, HRRoute } from '@components/auth/ProtectedRoute';
 import { HomePage } from './pages/HomePage';
+import { LoginPage } from './pages/LoginPage';
+import { UnauthorizedPage } from './pages/UnauthorizedPage';
+import { SurveyListPage } from './pages/SurveyListPage';
+import { SurveyPage } from './pages/SurveyPage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -15,12 +22,62 @@ const queryClient = new QueryClient({
 export function App(): JSX.Element {
   return (
     <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </BrowserRouter>
+      <ThemeProvider defaultTheme="system">
+        <AuthProvider>
+          <BrowserRouter>
+            <Routes>
+              {/* Public Routes */}
+              <Route path="/" element={<HomePage />} />
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/unauthorized" element={<UnauthorizedPage />} />
+              
+              {/* Survey Routes (Anonymous Access) */}
+              <Route path="/surveys" element={<SurveyListPage />} />
+              <Route path="/survey/:surveyId" element={<SurveyPage />} />
+              
+              {/* Protected Routes - Authenticated Users */}
+              <Route 
+                path="/dashboard" 
+                element={
+                  <ProtectedRoute>
+                    <div className="p-8">
+                      <h1 className="text-2xl font-bold">ダッシュボード</h1>
+                      <p>認証ユーザー専用ページ（開発中）</p>
+                    </div>
+                  </ProtectedRoute>
+                } 
+              />
+              
+              {/* HR Routes */}
+              <Route 
+                path="/admin/*" 
+                element={
+                  <HRRoute>
+                    <div className="p-8">
+                      <h1 className="text-2xl font-bold">管理画面</h1>
+                      <p>HR・管理者専用ページ（開発中）</p>
+                    </div>
+                  </HRRoute>
+                } 
+              />
+              
+              {/* Results Routes */}
+              <Route 
+                path="/results/:surveyId" 
+                element={
+                  <div className="p-8">
+                    <h1 className="text-2xl font-bold">調査結果</h1>
+                    <p>結果表示ページ（開発中）</p>
+                  </div>
+                } 
+              />
+              
+              {/* Catch-all Route */}
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </BrowserRouter>
+        </AuthProvider>
+      </ThemeProvider>
     </QueryClientProvider>
   );
 }
