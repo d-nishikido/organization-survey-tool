@@ -1,4 +1,5 @@
 import { FastifyInstance, FastifyPluginAsync } from 'fastify';
+import { SurveyService } from '../services/survey.service';
 import {
   CreateSurveySchema,
   UpdateSurveySchema,
@@ -14,6 +15,8 @@ const ParamsSchema = z.object({
 });
 
 export const surveysRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
+  const surveyService = new SurveyService();
+
   // Get all surveys
   fastify.get(
     '/surveys',
@@ -29,14 +32,19 @@ export const surveysRoutes: FastifyPluginAsync = async (fastify: FastifyInstance
       preHandler: [validateQuery(SurveyQuerySchema)],
     },
     async (request, reply) => {
-      // TODO: Implement survey service
-      const mockData = {
-        data: [],
-        total: 0,
-        page: 1,
-        pageSize: 10,
-      };
-      return reply.code(200).send(mockData);
+      try {
+        const query = request.query as z.infer<typeof SurveyQuerySchema>;
+        const result = await surveyService.getAllSurveys(query);
+        return reply.code(200).send(result);
+      } catch (error) {
+        fastify.log.error(error);
+        return reply.code(500).send({
+          error: {
+            code: 'INTERNAL_SERVER_ERROR',
+            message: 'Internal server error',
+          },
+        });
+      }
     },
   );
 
@@ -67,14 +75,29 @@ export const surveysRoutes: FastifyPluginAsync = async (fastify: FastifyInstance
       preHandler: [validateParams(ParamsSchema)],
     },
     async (request, reply) => {
-      const { id } = request.params as { id: number };
-      // TODO: Implement survey service
-      return reply.code(404).send({
-        error: {
-          code: 'NOT_FOUND',
-          message: `Survey with id ${id} not found`,
-        },
-      });
+      try {
+        const { id } = request.params as { id: number };
+        const survey = await surveyService.getSurveyById(id);
+
+        if (!survey) {
+          return reply.code(404).send({
+            error: {
+              code: 'NOT_FOUND',
+              message: `Survey with id ${id} not found`,
+            },
+          });
+        }
+
+        return reply.code(200).send(survey);
+      } catch (error) {
+        fastify.log.error(error);
+        return reply.code(500).send({
+          error: {
+            code: 'INTERNAL_SERVER_ERROR',
+            message: 'Internal server error',
+          },
+        });
+      }
     },
   );
 
@@ -88,20 +111,50 @@ export const surveysRoutes: FastifyPluginAsync = async (fastify: FastifyInstance
         body: CreateSurveySchema,
         response: {
           201: SurveyResponseSchema,
+          400: {
+            type: 'object',
+            properties: {
+              error: {
+                type: 'object',
+                properties: {
+                  code: { type: 'string' },
+                  message: { type: 'string' },
+                },
+              },
+            },
+          },
         },
       },
       preHandler: [validateBody(CreateSurveySchema)],
     },
     async (request, reply) => {
-      const surveyData = request.body;
-      // TODO: Implement survey service
-      const mockResponse = {
-        id: 1,
-        ...surveyData,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      };
-      return reply.code(201).send(mockResponse);
+      try {
+        const surveyData = request.body as z.infer<typeof CreateSurveySchema>;
+
+        // Validate date range
+        const startDate = new Date(surveyData.start_date);
+        const endDate = new Date(surveyData.end_date);
+
+        if (endDate <= startDate) {
+          return reply.code(400).send({
+            error: {
+              code: 'INVALID_DATE_RANGE',
+              message: 'End date must be after start date',
+            },
+          });
+        }
+
+        const survey = await surveyService.createSurvey(surveyData);
+        return reply.code(201).send(survey);
+      } catch (error) {
+        fastify.log.error(error);
+        return reply.code(500).send({
+          error: {
+            code: 'INTERNAL_SERVER_ERROR',
+            message: 'Internal server error',
+          },
+        });
+      }
     },
   );
 
@@ -116,20 +169,63 @@ export const surveysRoutes: FastifyPluginAsync = async (fastify: FastifyInstance
         body: UpdateSurveySchema,
         response: {
           200: SurveyResponseSchema,
+          404: {
+            type: 'object',
+            properties: {
+              error: {
+                type: 'object',
+                properties: {
+                  code: { type: 'string' },
+                  message: { type: 'string' },
+                },
+              },
+            },
+          },
         },
       },
       preHandler: [validateParams(ParamsSchema), validateBody(UpdateSurveySchema)],
     },
     async (request, reply) => {
-      const { id } = request.params as { id: number };
-      const updateData = request.body;
-      // TODO: Implement survey service
-      return reply.code(404).send({
-        error: {
-          code: 'NOT_FOUND',
-          message: `Survey with id ${id} not found`,
-        },
-      });
+      try {
+        const { id } = request.params as { id: number };
+        const updateData = request.body as z.infer<typeof UpdateSurveySchema>;
+
+        // Validate date range if both dates are provided
+        if (updateData.start_date && updateData.end_date) {
+          const startDate = new Date(updateData.start_date);
+          const endDate = new Date(updateData.end_date);
+
+          if (endDate <= startDate) {
+            return reply.code(400).send({
+              error: {
+                code: 'INVALID_DATE_RANGE',
+                message: 'End date must be after start date',
+              },
+            });
+          }
+        }
+
+        const survey = await surveyService.updateSurvey(id, updateData);
+
+        if (!survey) {
+          return reply.code(404).send({
+            error: {
+              code: 'NOT_FOUND',
+              message: `Survey with id ${id} not found`,
+            },
+          });
+        }
+
+        return reply.code(200).send(survey);
+      } catch (error) {
+        fastify.log.error(error);
+        return reply.code(500).send({
+          error: {
+            code: 'INTERNAL_SERVER_ERROR',
+            message: 'Internal server error',
+          },
+        });
+      }
     },
   );
 
@@ -146,14 +242,47 @@ export const surveysRoutes: FastifyPluginAsync = async (fastify: FastifyInstance
             type: 'null',
             description: 'Survey deleted successfully',
           },
+          404: {
+            type: 'object',
+            properties: {
+              error: {
+                type: 'object',
+                properties: {
+                  code: { type: 'string' },
+                  message: { type: 'string' },
+                },
+              },
+            },
+          },
         },
       },
       preHandler: [validateParams(ParamsSchema)],
     },
     async (request, reply) => {
-      const { id } = request.params as { id: number };
-      // TODO: Implement survey service
-      return reply.code(204).send();
+      try {
+        const { id } = request.params as { id: number };
+
+        const exists = await surveyService.surveyExists(id);
+        if (!exists) {
+          return reply.code(404).send({
+            error: {
+              code: 'NOT_FOUND',
+              message: `Survey with id ${id} not found`,
+            },
+          });
+        }
+
+        await surveyService.deleteSurvey(id);
+        return reply.code(204).send();
+      } catch (error) {
+        fastify.log.error(error);
+        return reply.code(500).send({
+          error: {
+            code: 'INTERNAL_SERVER_ERROR',
+            message: 'Internal server error',
+          },
+        });
+      }
     },
   );
 };
