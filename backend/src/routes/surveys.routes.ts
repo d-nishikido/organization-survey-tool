@@ -29,7 +29,6 @@ export const surveysRoutes: FastifyPluginAsync = async (fastify: FastifyInstance
           200: SurveyListSchema,
         },
       },
-      preHandler: [validateQuery(SurveyQuerySchema)],
     },
     async (request, reply) => {
       try {
@@ -72,7 +71,6 @@ export const surveysRoutes: FastifyPluginAsync = async (fastify: FastifyInstance
           },
         },
       },
-      preHandler: [validateParams(ParamsSchema)],
     },
     async (request, reply) => {
       try {
@@ -125,7 +123,6 @@ export const surveysRoutes: FastifyPluginAsync = async (fastify: FastifyInstance
           },
         },
       },
-      preHandler: [validateBody(CreateSurveySchema)],
     },
     async (request, reply) => {
       try {
@@ -183,7 +180,6 @@ export const surveysRoutes: FastifyPluginAsync = async (fastify: FastifyInstance
           },
         },
       },
-      preHandler: [validateParams(ParamsSchema), validateBody(UpdateSurveySchema)],
     },
     async (request, reply) => {
       try {
@@ -256,7 +252,6 @@ export const surveysRoutes: FastifyPluginAsync = async (fastify: FastifyInstance
           },
         },
       },
-      preHandler: [validateParams(ParamsSchema)],
     },
     async (request, reply) => {
       try {

@@ -3,7 +3,7 @@ import { logger } from '../utils/logger';
 
 export async function loggingMiddleware(
   request: FastifyRequest,
-  reply: FastifyReply,
+  _reply: FastifyReply,
 ): Promise<void> {
   const start = Date.now();
 
@@ -18,7 +18,7 @@ export async function loggingMiddleware(
   });
 
   // Add response logging
-  reply.addHook('onSend', async (request, reply, payload) => {
+  request.server.addHook('onSend', async (request: any, reply: any, payload: any) => {
     const duration = Date.now() - start;
 
     logger.info({
