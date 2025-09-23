@@ -1,0 +1,213 @@
+import { AdminLayout, AdminSection, PermissionBadge } from '@/components/admin';
+import { useAuth } from '@/contexts/AuthContext';
+import Card from '@/components/ui/Card';
+
+export function AdminDashboard(): JSX.Element {
+  const { user } = useAuth();
+
+  return (
+    <AdminLayout>
+      <div className="space-y-6">
+        {/* Welcome Section */}
+        <div className="bg-white shadow rounded-lg p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">
+                管理ダッシュボード
+              </h1>
+              <p className="mt-1 text-sm text-gray-600">
+                組織調査ツールの管理画面へようこそ
+              </p>
+            </div>
+            {user?.role && (
+              <PermissionBadge role={user.role} />
+            )}
+          </div>
+        </div>
+
+        {/* Stats Grid */}
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          <Card variant="default" padding="md">
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <div className="w-8 h-8 bg-blue-500 rounded-md flex items-center justify-center">
+                  <span className="text-white text-lg">📊</span>
+                </div>
+              </div>
+              <div className="ml-5 w-0 flex-1">
+                <dl>
+                  <dt className="text-sm font-medium text-gray-500 truncate">
+                    アクティブ調査
+                  </dt>
+                  <dd className="text-lg font-medium text-gray-900">
+                    3
+                  </dd>
+                </dl>
+              </div>
+            </div>
+          </Card>
+
+          <Card variant="default" padding="md">
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <div className="w-8 h-8 bg-green-500 rounded-md flex items-center justify-center">
+                  <span className="text-white text-lg">👥</span>
+                </div>
+              </div>
+              <div className="ml-5 w-0 flex-1">
+                <dl>
+                  <dt className="text-sm font-medium text-gray-500 truncate">
+                    総回答数
+                  </dt>
+                  <dd className="text-lg font-medium text-gray-900">
+                    1,247
+                  </dd>
+                </dl>
+              </div>
+            </div>
+          </Card>
+
+          <Card variant="default" padding="md">
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <div className="w-8 h-8 bg-yellow-500 rounded-md flex items-center justify-center">
+                  <span className="text-white text-lg">📈</span>
+                </div>
+              </div>
+              <div className="ml-5 w-0 flex-1">
+                <dl>
+                  <dt className="text-sm font-medium text-gray-500 truncate">
+                    回答率
+                  </dt>
+                  <dd className="text-lg font-medium text-gray-900">
+                    78.3%
+                  </dd>
+                </dl>
+              </div>
+            </div>
+          </Card>
+
+          <Card variant="default" padding="md">
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <div className="w-8 h-8 bg-purple-500 rounded-md flex items-center justify-center">
+                  <span className="text-white text-lg">⏱️</span>
+                </div>
+              </div>
+              <div className="ml-5 w-0 flex-1">
+                <dl>
+                  <dt className="text-sm font-medium text-gray-500 truncate">
+                    平均回答時間
+                  </dt>
+                  <dd className="text-lg font-medium text-gray-900">
+                    12分
+                  </dd>
+                </dl>
+              </div>
+            </div>
+          </Card>
+        </div>
+
+        {/* Quick Actions */}
+        <AdminSection
+          title="クイックアクション"
+          description="よく使用される管理機能"
+        >
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <button className="relative p-6 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors text-left">
+              <div className="flex items-center">
+                <span className="text-2xl mr-3">📝</span>
+                <div>
+                  <h3 className="text-sm font-medium text-blue-900">
+                    新しい調査を作成
+                  </h3>
+                  <p className="text-sm text-blue-700 mt-1">
+                    新規調査の設定と作成
+                  </p>
+                </div>
+              </div>
+            </button>
+
+            <button className="relative p-6 bg-green-50 border border-green-200 rounded-lg hover:bg-green-100 transition-colors text-left">
+              <div className="flex items-center">
+                <span className="text-2xl mr-3">📊</span>
+                <div>
+                  <h3 className="text-sm font-medium text-green-900">
+                    結果を分析
+                  </h3>
+                  <p className="text-sm text-green-700 mt-1">
+                    回答結果の詳細分析
+                  </p>
+                </div>
+              </div>
+            </button>
+
+            <button className="relative p-6 bg-purple-50 border border-purple-200 rounded-lg hover:bg-purple-100 transition-colors text-left">
+              <div className="flex items-center">
+                <span className="text-2xl mr-3">⚙️</span>
+                <div>
+                  <h3 className="text-sm font-medium text-purple-900">
+                    システム設定
+                  </h3>
+                  <p className="text-sm text-purple-700 mt-1">
+                    各種設定の管理
+                  </p>
+                </div>
+              </div>
+            </button>
+          </div>
+        </AdminSection>
+
+        {/* Recent Activity */}
+        <AdminSection
+          title="最近のアクティビティ"
+          description="システムの最新動向"
+        >
+          <div className="space-y-4">
+            <div className="flex items-start space-x-3">
+              <div className="flex-shrink-0">
+                <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                  <span className="text-blue-600 text-sm">📝</span>
+                </div>
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm text-gray-900">
+                  新しい調査「2024年度エンゲージメント調査」が作成されました
+                </p>
+                <p className="text-sm text-gray-500">2時間前</p>
+              </div>
+            </div>
+
+            <div className="flex items-start space-x-3">
+              <div className="flex-shrink-0">
+                <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                  <span className="text-green-600 text-sm">✅</span>
+                </div>
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm text-gray-900">
+                  25件の新しい回答が収集されました
+                </p>
+                <p className="text-sm text-gray-500">4時間前</p>
+              </div>
+            </div>
+
+            <div className="flex items-start space-x-3">
+              <div className="flex-shrink-0">
+                <div className="w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center">
+                  <span className="text-yellow-600 text-sm">📊</span>
+                </div>
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm text-gray-900">
+                  週次分析レポートが生成されました
+                </p>
+                <p className="text-sm text-gray-500">1日前</p>
+              </div>
+            </div>
+          </div>
+        </AdminSection>
+      </div>
+    </AdminLayout>
+  );
+}

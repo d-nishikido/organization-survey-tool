@@ -9,6 +9,7 @@ import { UnauthorizedPage } from './pages/UnauthorizedPage';
 import { SurveyListPage } from './pages/SurveyListPage';
 import { SurveyDetailPage } from './pages/SurveyDetailPage';
 import { SurveyPage } from './pages/SurveyPage';
+import { AdminDashboard } from './pages/AdminDashboard';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -51,16 +52,21 @@ export function App(): JSX.Element {
               />
               
               {/* HR Routes */}
-              <Route 
-                path="/admin/*" 
+              <Route
+                path="/admin"
                 element={
                   <HRRoute>
-                    <div className="p-8">
-                      <h1 className="text-2xl font-bold">管理画面</h1>
-                      <p>HR・管理者専用ページ（開発中）</p>
-                    </div>
+                    <AdminDashboard />
                   </HRRoute>
-                } 
+                }
+              />
+              <Route
+                path="/admin/*"
+                element={
+                  <HRRoute>
+                    <AdminDashboard />
+                  </HRRoute>
+                }
               />
               
               {/* Results Routes */}
