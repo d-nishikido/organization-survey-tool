@@ -1,0 +1,28 @@
+{
+  "name": "organization-survey-tool",
+  "version": "1.0.0",
+  "description": "従業員のエンゲージメント向上を目的とした組織改善ツールです。",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs",
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/d-nishikido/organization-survey-tool.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/d-nishikido/organization-survey-tool/issues"
+  },
+  "homepage": "https://github.com/d-nishikido/organization-survey-tool#readme",
+  "dependencies": {
+    "@playwright/test": "^1.55.0"
+  }
+}
