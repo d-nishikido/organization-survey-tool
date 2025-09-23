@@ -1,0 +1,118 @@
+/* Responsive Design Utilities */
+@layer utilities {
+  /* Container utilities */
+  .container-responsive {
+    @apply w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+
+  .container-sm {
+    @apply w-full max-w-2xl mx-auto px-4;
+  }
+
+  .container-md {
+    @apply w-full max-w-4xl mx-auto px-4 sm:px-6;
+  }
+
+  .container-lg {
+    @apply w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+
+  /* Grid utilities */
+  .grid-responsive {
+    @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6;
+  }
+
+  .grid-2-col {
+    @apply grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6;
+  }
+
+  .grid-3-col {
+    @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6;
+  }
+
+  .grid-4-col {
+    @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6;
+  }
+
+  /* Flex utilities */
+  .flex-responsive {
+    @apply flex flex-col sm:flex-row gap-4;
+  }
+
+  .flex-center {
+    @apply flex items-center justify-center;
+  }
+
+  .flex-between {
+    @apply flex items-center justify-between;
+  }
+
+  .flex-start {
+    @apply flex items-center justify-start;
+  }
+
+  .flex-end {
+    @apply flex items-center justify-end;
+  }
+
+  /* Text utilities */
+  .text-responsive {
+    @apply text-sm sm:text-base lg:text-lg;
+  }
+
+  .heading-responsive {
+    @apply text-lg sm:text-xl lg:text-2xl xl:text-3xl;
+  }
+
+  .title-responsive {
+    @apply text-xl sm:text-2xl lg:text-3xl xl:text-4xl;
+  }
+
+  /* Spacing utilities */
+  .spacing-responsive {
+    @apply space-y-4 md:space-y-6 lg:space-y-8;
+  }
+
+  .padding-responsive {
+    @apply p-4 md:p-6 lg:p-8;
+  }
+
+  .margin-responsive {
+    @apply m-4 md:m-6 lg:m-8;
+  }
+
+  /* Navigation utilities */
+  .nav-mobile {
+    @apply block md:hidden;
+  }
+
+  .nav-desktop {
+    @apply hidden md:block;
+  }
+
+  /* Mobile-first responsive breakpoints */
+  .mobile-only {
+    @apply block sm:hidden;
+  }
+
+  .tablet-up {
+    @apply hidden sm:block;
+  }
+
+  .desktop-up {
+    @apply hidden lg:block;
+  }
+
+  /* Hide/show at different breakpoints */
+  .hide-mobile {
+    @apply hidden sm:block;
+  }
+
+  .hide-tablet {
+    @apply block sm:hidden lg:block;
+  }
+
+  .hide-desktop {
+    @apply block lg:hidden;
+  }
+}
