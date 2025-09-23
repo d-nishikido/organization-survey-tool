@@ -6,7 +6,10 @@ dotenv.config();
 const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
   PORT: z.string().default('3001').transform(Number),
-  DATABASE_URL: z.string().url().default('postgresql://survey_user:survey_password@postgres:5432/organization_survey'),
+  DATABASE_URL: z
+    .string()
+    .url()
+    .default('postgresql://survey_user:survey_password@postgres:5432/organization_survey'),
   CORS_ORIGINS: z.string().default('http://localhost:5173'),
   LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace']).default('info'),
   JWT_SECRET: z.string().default('your-secret-key-change-in-production'),

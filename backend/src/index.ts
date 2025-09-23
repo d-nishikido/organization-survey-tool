@@ -7,6 +7,11 @@ import swaggerUI from '@fastify/swagger-ui';
 import { config } from './config/config';
 import { logger } from './utils/logger';
 import { healthRoutes } from './routes/health.routes';
+import { surveysRoutes } from './routes/surveys.routes';
+import { questionsRoutes } from './routes/questions.routes';
+import { responsesRoutes } from './routes/responses.routes';
+import { analyticsRoutes } from './routes/analytics.routes';
+import { loggingMiddleware } from './middleware/logging';
 import { errorHandler } from './middleware/errorHandler';
 
 const server = fastify({
@@ -73,11 +78,18 @@ async function buildServer(): Promise<typeof server> {
     transformStaticCSP: (header) => header,
   });
 
+  // Global middleware
+  server.addHook('onRequest', loggingMiddleware);
+
   // Error handler
   server.setErrorHandler(errorHandler);
 
   // Register routes
   await server.register(healthRoutes, { prefix: '/api' });
+  await server.register(surveysRoutes, { prefix: '/api' });
+  await server.register(questionsRoutes, { prefix: '/api' });
+  await server.register(responsesRoutes, { prefix: '/api' });
+  await server.register(analyticsRoutes, { prefix: '/api' });
 
   return server;
 }
@@ -100,16 +112,20 @@ async function start(): Promise<void> {
 }
 
 // Handle graceful shutdown
-process.on('SIGTERM', async () => {
-  logger.info('SIGTERM received, shutting down gracefully');
-  await server.close();
-  process.exit(0);
+process.on('SIGTERM', () => {
+  void (async () => {
+    logger.info('SIGTERM received, shutting down gracefully');
+    await server.close();
+    process.exit(0);
+  })();
 });
 
-process.on('SIGINT', async () => {
-  logger.info('SIGINT received, shutting down gracefully');
-  await server.close();
-  process.exit(0);
+process.on('SIGINT', () => {
+  void (async () => {
+    logger.info('SIGINT received, shutting down gracefully');
+    await server.close();
+    process.exit(0);
+  })();
 });
 
-start();
+void start();
