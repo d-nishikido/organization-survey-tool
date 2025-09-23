@@ -5,10 +5,7 @@ import { logger } from '../utils/logger';
  * Middleware to ensure anonymity by removing or masking identifiable information
  * from requests and responses for anonymous surveys
  */
-export function anonymityMiddleware(
-  request: FastifyRequest,
-  reply: FastifyReply,
-): void {
+export function anonymityMiddleware(request: FastifyRequest, reply: FastifyReply): void {
   // Remove identifiable headers from logging
   const sanitizedHeaders = { ...request.headers };
   delete sanitizedHeaders['x-forwarded-for'];

@@ -1,4 +1,5 @@
 import { FastifyInstance, FastifyPluginAsync } from 'fastify';
+import { QuestionService } from '../services/question.service';
 import {
   CreateQuestionSchema,
   UpdateQuestionSchema,
@@ -14,6 +15,8 @@ const ParamsSchema = z.object({
 });
 
 export const questionsRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
+  const questionService = new QuestionService();
+
   // Get all questions
   fastify.get(
     '/questions',
@@ -29,14 +32,19 @@ export const questionsRoutes: FastifyPluginAsync = async (fastify: FastifyInstan
       preHandler: [validateQuery(QuestionQuerySchema)],
     },
     async (request, reply) => {
-      // TODO: Implement question service
-      const mockData = {
-        data: [],
-        total: 0,
-        page: 1,
-        pageSize: 10,
-      };
-      return reply.code(200).send(mockData);
+      try {
+        const query = request.query as z.infer<typeof QuestionQuerySchema>;
+        const result = await questionService.getAllQuestions(query);
+        return reply.code(200).send(result);
+      } catch (error) {
+        fastify.log.error(error);
+        return reply.code(500).send({
+          error: {
+            code: 'INTERNAL_SERVER_ERROR',
+            message: 'Internal server error',
+          },
+        });
+      }
     },
   );
 
@@ -67,14 +75,29 @@ export const questionsRoutes: FastifyPluginAsync = async (fastify: FastifyInstan
       preHandler: [validateParams(ParamsSchema)],
     },
     async (request, reply) => {
-      const { id } = request.params as { id: number };
-      // TODO: Implement question service
-      return reply.code(404).send({
-        error: {
-          code: 'NOT_FOUND',
-          message: `Question with id ${id} not found`,
-        },
-      });
+      try {
+        const { id } = request.params as { id: number };
+        const question = await questionService.getQuestionById(id);
+
+        if (!question) {
+          return reply.code(404).send({
+            error: {
+              code: 'NOT_FOUND',
+              message: `Question with id ${id} not found`,
+            },
+          });
+        }
+
+        return reply.code(200).send(question);
+      } catch (error) {
+        fastify.log.error(error);
+        return reply.code(500).send({
+          error: {
+            code: 'INTERNAL_SERVER_ERROR',
+            message: 'Internal server error',
+          },
+        });
+      }
     },
   );
 
@@ -88,25 +111,51 @@ export const questionsRoutes: FastifyPluginAsync = async (fastify: FastifyInstan
         body: CreateQuestionSchema,
         response: {
           201: QuestionResponseSchema,
+          400: {
+            type: 'object',
+            properties: {
+              error: {
+                type: 'object',
+                properties: {
+                  code: { type: 'string' },
+                  message: { type: 'string' },
+                },
+              },
+            },
+          },
         },
       },
       preHandler: [validateBody(CreateQuestionSchema)],
     },
     async (request, reply) => {
-      const questionData = request.body;
-      // TODO: Implement question service
-      const mockResponse = {
-        id: 1,
-        ...questionData,
-        options: questionData.options || null,
-        min_value: questionData.min_value || null,
-        max_value: questionData.max_value || null,
-        min_label: questionData.min_label || null,
-        max_label: questionData.max_label || null,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      };
-      return reply.code(201).send(mockResponse);
+      try {
+        const questionData = request.body as z.infer<typeof CreateQuestionSchema>;
+
+        // Validate rating scale ranges
+        if (questionData.type === 'rating' || questionData.type === 'scale') {
+          if (questionData.min_value !== undefined && questionData.max_value !== undefined) {
+            if (questionData.max_value <= questionData.min_value) {
+              return reply.code(400).send({
+                error: {
+                  code: 'INVALID_RANGE',
+                  message: 'Max value must be greater than min value',
+                },
+              });
+            }
+          }
+        }
+
+        const question = await questionService.createQuestion(questionData);
+        return reply.code(201).send(question);
+      } catch (error) {
+        fastify.log.error(error);
+        return reply.code(500).send({
+          error: {
+            code: 'INTERNAL_SERVER_ERROR',
+            message: 'Internal server error',
+          },
+        });
+      }
     },
   );
 
@@ -121,20 +170,60 @@ export const questionsRoutes: FastifyPluginAsync = async (fastify: FastifyInstan
         body: UpdateQuestionSchema,
         response: {
           200: QuestionResponseSchema,
+          404: {
+            type: 'object',
+            properties: {
+              error: {
+                type: 'object',
+                properties: {
+                  code: { type: 'string' },
+                  message: { type: 'string' },
+                },
+              },
+            },
+          },
         },
       },
       preHandler: [validateParams(ParamsSchema), validateBody(UpdateQuestionSchema)],
     },
     async (request, reply) => {
-      const { id } = request.params as { id: number };
-      const updateData = request.body;
-      // TODO: Implement question service
-      return reply.code(404).send({
-        error: {
-          code: 'NOT_FOUND',
-          message: `Question with id ${id} not found`,
-        },
-      });
+      try {
+        const { id } = request.params as { id: number };
+        const updateData = request.body as z.infer<typeof UpdateQuestionSchema>;
+
+        // Validate rating scale ranges if provided
+        if (updateData.min_value !== undefined && updateData.max_value !== undefined) {
+          if (updateData.max_value <= updateData.min_value) {
+            return reply.code(400).send({
+              error: {
+                code: 'INVALID_RANGE',
+                message: 'Max value must be greater than min value',
+              },
+            });
+          }
+        }
+
+        const question = await questionService.updateQuestion(id, updateData);
+
+        if (!question) {
+          return reply.code(404).send({
+            error: {
+              code: 'NOT_FOUND',
+              message: `Question with id ${id} not found`,
+            },
+          });
+        }
+
+        return reply.code(200).send(question);
+      } catch (error) {
+        fastify.log.error(error);
+        return reply.code(500).send({
+          error: {
+            code: 'INTERNAL_SERVER_ERROR',
+            message: 'Internal server error',
+          },
+        });
+      }
     },
   );
 
@@ -151,14 +240,47 @@ export const questionsRoutes: FastifyPluginAsync = async (fastify: FastifyInstan
             type: 'null',
             description: 'Question deleted successfully',
           },
+          404: {
+            type: 'object',
+            properties: {
+              error: {
+                type: 'object',
+                properties: {
+                  code: { type: 'string' },
+                  message: { type: 'string' },
+                },
+              },
+            },
+          },
         },
       },
       preHandler: [validateParams(ParamsSchema)],
     },
     async (request, reply) => {
-      const { id } = request.params as { id: number };
-      // TODO: Implement question service
-      return reply.code(204).send();
+      try {
+        const { id } = request.params as { id: number };
+
+        const exists = await questionService.questionExists(id);
+        if (!exists) {
+          return reply.code(404).send({
+            error: {
+              code: 'NOT_FOUND',
+              message: `Question with id ${id} not found`,
+            },
+          });
+        }
+
+        await questionService.deleteQuestion(id);
+        return reply.code(204).send();
+      } catch (error) {
+        fastify.log.error(error);
+        return reply.code(500).send({
+          error: {
+            code: 'INTERNAL_SERVER_ERROR',
+            message: 'Internal server error',
+          },
+        });
+      }
     },
   );
 };

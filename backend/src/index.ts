@@ -6,6 +6,7 @@ import swagger from '@fastify/swagger';
 import swaggerUI from '@fastify/swagger-ui';
 import { config } from './config/config';
 import { logger } from './utils/logger';
+import { db } from './config/database';
 import { healthRoutes } from './routes/health.routes';
 import { surveysRoutes } from './routes/surveys.routes';
 import { questionsRoutes } from './routes/questions.routes';
@@ -96,6 +97,13 @@ async function buildServer(): Promise<typeof server> {
 
 async function start(): Promise<void> {
   try {
+    // Test database connection
+    const dbConnected = await db.testConnection();
+    if (!dbConnected) {
+      logger.error('Failed to connect to database');
+      process.exit(1);
+    }
+
     const app = await buildServer();
 
     await app.listen({
