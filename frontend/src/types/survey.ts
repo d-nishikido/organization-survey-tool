@@ -1,10 +1,28 @@
-export interface SurveyQuestion {
+export interface Survey {
+  id: string;
+  title: string;
+  description: string;
+  status: 'draft' | 'active' | 'completed';
+  startDate?: string;
+  endDate?: string;
+  createdAt: string;
+  updatedAt: string;
+  questionCount?: number;
+  responseCount?: number;
+}
+
+export interface Question {
   id: string;
   type: 'multiple_choice' | 'scale' | 'text' | 'yes_no';
   question: string;
   options?: string[];
   required: boolean;
   category: string;
+  order?: number;
+}
+
+export interface SurveyQuestion extends Question {
+  surveyId: string;
 }
 
 export interface SurveyResponse {
