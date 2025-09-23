@@ -2,7 +2,6 @@ import { FastifyRequest, FastifyReply } from 'fastify';
 import { ZodError } from 'zod';
 import { errorHandler } from '../errorHandler';
 import {
-  CustomError,
   ValidationError,
   NotFoundError,
   AuthenticationError,

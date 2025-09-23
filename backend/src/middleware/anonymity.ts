@@ -38,7 +38,7 @@ export function anonymityMiddleware(request: FastifyRequest, reply: FastifyReply
 /**
  * Verify session is properly anonymized
  */
-export function validateAnonymousSession(request: FastifyRequest, reply: FastifyReply): void {
+export function validateAnonymousSession(request: FastifyRequest, _reply: FastifyReply): void {
   const sessionId =
     (request.body as any)?.session_id ||
     (request.query as any)?.session_id ||

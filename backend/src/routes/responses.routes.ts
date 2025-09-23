@@ -45,7 +45,7 @@ export const responsesRoutes: FastifyPluginAsync = async (fastify: FastifyInstan
       ],
     },
     async (request, reply) => {
-      const responseData = request.body as any;
+      const _responseData = request.body as any;
       // TODO: Implement response service
       const mockConfirmation = {
         success: true,
