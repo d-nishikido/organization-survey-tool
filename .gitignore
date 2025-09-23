@@ -85,3 +85,6 @@ nginx.prod.conf.bak
 
 # ドキュメント
 docs/
+
+# Playwright MCP
+.playwright-mcp/
