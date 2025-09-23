@@ -7,7 +7,7 @@ import swaggerUI from '@fastify/swagger-ui';
 import { config } from './config/config';
 import { logger } from './utils/logger';
 import { db } from './config/database';
-import { serviceContainer } from './services/service-container';
+// // import { serviceContainer } from './services/service-container';
 import { healthRoutes } from './routes/health.routes';
 import { surveysRoutes } from './routes/surveys.routes';
 import { questionsRoutes } from './routes/questions.routes';
@@ -89,9 +89,9 @@ async function buildServer(): Promise<typeof server> {
   // Register routes
   await server.register(healthRoutes, { prefix: '/api' });
   await server.register(surveysRoutes, { prefix: '/api' });
-  await server.register(questionsRoutes, { prefix: '/api' });
-  await server.register(responsesRoutes, { prefix: '/api' });
-  await server.register(analyticsRoutes, { prefix: '/api' });
+  // await server.register(questionsRoutes, { prefix: '/api' });
+  // await server.register(responsesRoutes, { prefix: '/api' });
+  // await server.register(analyticsRoutes, { prefix: '/api' });
 
   return server;
 }
@@ -99,8 +99,8 @@ async function buildServer(): Promise<typeof server> {
 async function start(): Promise<void> {
   try {
     // Initialize service container
-    await serviceContainer.initialize();
-    logger.info('Service container initialized successfully');
+    // await serviceContainer.initialize();
+    // logger.info('Service container initialized successfully');
 
     // Test database connection
     const dbConnected = await db.testConnection();
@@ -129,7 +129,7 @@ process.on('SIGTERM', () => {
   void (async () => {
     logger.info('SIGTERM received, shutting down gracefully');
     await server.close();
-    await serviceContainer.shutdown();
+    // await serviceContainer.shutdown();
     process.exit(0);
   })();
 });
@@ -138,7 +138,7 @@ process.on('SIGINT', () => {
   void (async () => {
     logger.info('SIGINT received, shutting down gracefully');
     await server.close();
-    await serviceContainer.shutdown();
+    // await serviceContainer.shutdown();
     process.exit(0);
   })();
 });
