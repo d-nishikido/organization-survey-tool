@@ -10,6 +10,9 @@ import { SurveyListPage } from './pages/SurveyListPage';
 import { SurveyDetailPage } from './pages/SurveyDetailPage';
 import { SurveyPage } from './pages/SurveyPage';
 import { AdminDashboard } from './pages/AdminDashboard';
+import { SurveyManagement } from './pages/SurveyManagement';
+import { SurveyForm } from './components/admin/SurveyForm';
+import { SurveyPreview } from './components/admin/SurveyPreview';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -57,6 +60,38 @@ export function App(): JSX.Element {
                 element={
                   <HRRoute>
                     <AdminDashboard />
+                  </HRRoute>
+                }
+              />
+              <Route
+                path="/admin/surveys"
+                element={
+                  <HRRoute>
+                    <SurveyManagement />
+                  </HRRoute>
+                }
+              />
+              <Route
+                path="/admin/surveys/new"
+                element={
+                  <HRRoute>
+                    <SurveyForm />
+                  </HRRoute>
+                }
+              />
+              <Route
+                path="/admin/surveys/:id/edit"
+                element={
+                  <HRRoute>
+                    <SurveyForm />
+                  </HRRoute>
+                }
+              />
+              <Route
+                path="/admin/surveys/:id/preview"
+                element={
+                  <HRRoute>
+                    <SurveyPreview />
                   </HRRoute>
                 }
               />
