@@ -7,6 +7,7 @@ import { HomePage } from './pages/HomePage';
 import { LoginPage } from './pages/LoginPage';
 import { UnauthorizedPage } from './pages/UnauthorizedPage';
 import { SurveyListPage } from './pages/SurveyListPage';
+import { SurveyDetailPage } from './pages/SurveyDetailPage';
 import { SurveyPage } from './pages/SurveyPage';
 
 const queryClient = new QueryClient({
@@ -33,6 +34,7 @@ export function App(): JSX.Element {
               
               {/* Survey Routes (Anonymous Access) */}
               <Route path="/surveys" element={<SurveyListPage />} />
+              <Route path="/survey/:surveyId/details" element={<SurveyDetailPage />} />
               <Route path="/survey/:surveyId" element={<SurveyPage />} />
               
               {/* Protected Routes - Authenticated Users */}

@@ -1,14 +1,14 @@
 export interface Survey {
   id: string;
   title: string;
-  description: string;
-  status: 'draft' | 'active' | 'completed';
-  startDate?: string;
-  endDate?: string;
-  createdAt: string;
-  updatedAt: string;
+  description: string | null;
+  status: 'draft' | 'active' | 'closed' | 'archived';
+  start_date?: string;
+  end_date?: string;
+  created_at: string;
+  updated_at: string;
   questionCount?: number;
-  responseCount?: number;
+  response_count?: number;
 }
 
 export interface Question {
