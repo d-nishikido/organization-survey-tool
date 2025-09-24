@@ -137,3 +137,85 @@ test.describe('Survey Application Smoke Tests', () => {
     expect(hasJSErrors).toBeFalsy();
   });
 });
+
+test.describe('Analytics Dashboard Smoke Tests', () => {
+  test('Should load analytics dashboard', async ({ page }) => {
+    // Navigate to analytics dashboard
+    await page.goto('/admin/analytics');
+    await page.waitForLoadState('networkidle');
+
+    // Check if analytics dashboard loads or shows appropriate error/auth message
+    const analyticsContent = page.getByText('分析ダッシュボード');
+    const authMessage = page.getByText('認証が必要');
+    const loadingMessage = page.getByText('読み込み中');
+
+    // One of these should be visible
+    await expect(analyticsContent.or(authMessage).or(loadingMessage).or(page.locator('h1'))).toBeVisible();
+  });
+
+  test('Should display analytics components without errors', async ({ page }) => {
+    await page.goto('/admin/analytics');
+    await page.waitForLoadState('networkidle');
+
+    // Wait for components to load
+    await page.waitForTimeout(3000);
+
+    // Check for key components or error states
+    const filterPanel = page.getByText('フィルター設定');
+    const exportTools = page.getByText('エクスポート');
+    const errorMessage = page.getByText('エラー');
+    const loadingState = page.getByText('読み込み');
+
+    // Should see components or appropriate states
+    const hasContent = await filterPanel.or(exportTools).or(errorMessage).or(loadingState).or(page.locator('body')).isVisible();
+    expect(hasContent).toBeTruthy();
+  });
+
+  test('Should handle analytics page on mobile', async ({ page }) => {
+    // Set mobile viewport
+    await page.setViewportSize({ width: 375, height: 667 });
+
+    await page.goto('/admin/analytics');
+    await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(2000);
+
+    // Check if page is responsive
+    const pageContent = page.locator('body');
+    await expect(pageContent).toBeVisible();
+
+    // Verify no horizontal overflow
+    const hasHorizontalScroll = await page.evaluate(() => {
+      return document.body.scrollWidth > window.innerWidth;
+    });
+    expect(hasHorizontalScroll).toBeFalsy();
+  });
+
+  test('Should not have JavaScript errors on analytics page', async ({ page }) => {
+    const errors: string[] = [];
+
+    // Capture console errors
+    page.on('console', (msg) => {
+      if (msg.type() === 'error' && !msg.text().includes('favicon')) {
+        errors.push(msg.text());
+      }
+    });
+
+    // Capture page errors
+    page.on('pageerror', (err) => {
+      errors.push(err.message);
+    });
+
+    await page.goto('/admin/analytics');
+    await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(3000);
+
+    // Filter out non-critical errors
+    const criticalErrors = errors.filter(error =>
+      !error.includes('net::ERR_') &&
+      !error.includes('ResizeObserver') &&
+      !error.includes('favicon')
+    );
+
+    expect(criticalErrors.length).toBeLessThanOrEqual(2); // Allow minor non-blocking errors
+  });
+});

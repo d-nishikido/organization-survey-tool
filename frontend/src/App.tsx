@@ -14,6 +14,7 @@ import { SurveyManagement } from './pages/SurveyManagement';
 import { SurveyOperations } from './pages/SurveyOperations';
 import { SurveyForm } from './components/admin/SurveyForm';
 import { SurveyPreview } from './components/admin/SurveyPreview';
+import { AnalyticsDashboard } from './components/analytics';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -101,6 +102,14 @@ export function App(): JSX.Element {
                 element={
                   <HRRoute>
                     <SurveyOperations />
+                  </HRRoute>
+                }
+              />
+              <Route
+                path="/admin/analytics"
+                element={
+                  <HRRoute>
+                    <AnalyticsDashboard />
                   </HRRoute>
                 }
               />
