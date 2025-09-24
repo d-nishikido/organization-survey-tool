@@ -216,7 +216,7 @@ export function SurveyManagement(): JSX.Element {
                       プレビュー
                     </Button>
                   </Link>
-                  
+
                   {survey.status === 'draft' && (
                     <Link to={`/admin/surveys/${survey.id}/edit`}>
                       <Button variant="secondary" size="sm">
@@ -224,7 +224,13 @@ export function SurveyManagement(): JSX.Element {
                       </Button>
                     </Link>
                   )}
-                  
+
+                  <Link to={`/admin/surveys/${survey.id}/operations`}>
+                    <Button variant="warning" size="sm">
+                      運用管理
+                    </Button>
+                  </Link>
+
                   <Link to={`/admin/analytics?survey=${survey.id}`}>
                     <Button variant="primary" size="sm">
                       結果分析
