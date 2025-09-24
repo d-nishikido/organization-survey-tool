@@ -38,13 +38,6 @@ interface SurveyAnalytics {
   demographics: Record<string, any>;
 }
 
-interface ReportRequest {
-  surveyIds?: string[];
-  startDate?: string;
-  endDate?: string;
-  format?: 'pdf' | 'excel' | 'csv';
-  includeRawData?: boolean;
-}
 
 export class AnalyticsService {
   private static readonly BASE_PATH = '/api/analytics';
@@ -173,41 +166,7 @@ export class AnalyticsService {
     }>>(`${this.BASE_PATH}/trends`, { params });
   }
 
-  /**
-   * Generate report
-   */
-  static async generateReport(
-    request: ReportRequest
-  ): Promise<ApiResponse<{ reportId: string }>> {
-    return apiClient.post<ApiResponse<{ reportId: string }>>(
-      `${this.BASE_PATH}/reports/generate`,
-      request
-    );
-  }
 
-  /**
-   * Get report status
-   */
-  static async getReportStatus(
-    reportId: string
-  ): Promise<ApiResponse<ReportJob>> {
-    return apiClient.get<ApiResponse<ReportJob>>(
-      `${this.BASE_PATH}/reports/${reportId}/status`
-    );
-  }
-
-  /**
-   * Download report
-   */
-  static async downloadReport(reportId: string): Promise<Blob> {
-    const response = await apiClient.getInstance().get(
-      `${this.BASE_PATH}/reports/${reportId}/download`,
-      {
-        responseType: 'blob',
-      }
-    );
-    return response.data;
-  }
 
   /**
    * Export analytics data (legacy method - calls new report API)
