@@ -1,6 +1,7 @@
 import { FastifyInstance, FastifyPluginAsync } from 'fastify';
 import { z } from 'zod';
 import { validateQuery } from '../middleware/validation';
+import { serviceContainer } from '../services/service-container';
 
 const AnalyticsQuerySchema = z.object({
   survey_id: z.coerce.number().positive(),
@@ -48,6 +49,43 @@ const TrendsResponseSchema = z.object({
   change_percentage: z.number(),
 });
 
+const CategoryAnalysisResponseSchema = z.object({
+  categories: z.array(
+    z.object({
+      category_code: z.string(),
+      category_name: z.string(),
+      response_count: z.number(),
+      average_score: z.number(),
+      statistics: z.object({
+        mean: z.number(),
+        median: z.number(),
+        standardDeviation: z.number(),
+        variance: z.number(),
+        min: z.number(),
+        max: z.number(),
+        count: z.number(),
+        quartiles: z.object({
+          q1: z.number(),
+          q2: z.number(),
+          q3: z.number(),
+        }),
+      }),
+      distribution: z.array(
+        z.object({
+          range: z.string(),
+          count: z.number(),
+          percentage: z.number(),
+        })
+      ),
+    })
+  ),
+});
+
+const CategoryQuerySchema = z.object({
+  survey_id: z.coerce.number().positive(),
+  category: z.string().optional(),
+});
+
 export const analyticsRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
   // Get analytics summary
   fastify.get(
@@ -76,18 +114,29 @@ export const analyticsRoutes: FastifyPluginAsync = async (fastify: FastifyInstan
       preHandler: [validateQuery(AnalyticsQuerySchema)],
     },
     async (request, reply) => {
-      const { survey_id } = request.query as any;
-      // TODO: Implement analytics service
-      const mockSummary = {
-        survey_id,
-        survey_title: 'Employee Engagement Survey',
-        total_responses: 0,
-        completion_rate: 0,
-        average_scores: {},
-        response_distribution: {},
-        generated_at: new Date().toISOString(),
-      };
-      return reply.code(200).send(mockSummary);
+      try {
+        const { survey_id } = request.query as any;
+        const analyticsService = serviceContainer.getAnalyticsService();
+
+        const summary = await analyticsService.getSurveySummary(survey_id);
+        return reply.code(200).send(summary);
+      } catch (error: any) {
+        if (error.message.includes('not found')) {
+          return reply.code(404).send({
+            error: {
+              code: 'SURVEY_NOT_FOUND',
+              message: 'Survey not found',
+            },
+          });
+        }
+
+        return reply.code(500).send({
+          error: {
+            code: 'ANALYTICS_ERROR',
+            message: 'Failed to generate analytics summary',
+          },
+        });
+      }
     },
   );
 
@@ -106,15 +155,52 @@ export const analyticsRoutes: FastifyPluginAsync = async (fastify: FastifyInstan
       preHandler: [validateQuery(TrendsQuerySchema)],
     },
     async (request, reply) => {
-      const { period } = request.query as any;
-      // TODO: Implement analytics service
-      const mockTrends = {
-        period,
-        data_points: [],
-        trend: 'stable' as const,
-        change_percentage: 0,
-      };
-      return reply.code(200).send(mockTrends);
+      try {
+        const { survey_id, category, period } = request.query as any;
+        const analyticsService = serviceContainer.getAnalyticsService();
+
+        const trends = await analyticsService.getTrendAnalysis(survey_id, category, period);
+        return reply.code(200).send(trends);
+      } catch (error: any) {
+        return reply.code(500).send({
+          error: {
+            code: 'ANALYTICS_ERROR',
+            message: 'Failed to generate trend analysis',
+          },
+        });
+      }
+    },
+  );
+
+  // Get category analysis
+  fastify.get(
+    '/analytics/categories',
+    {
+      schema: {
+        description: 'Get category-based analysis for a survey',
+        tags: ['analytics'],
+        querystring: CategoryQuerySchema,
+        response: {
+          200: CategoryAnalysisResponseSchema,
+        },
+      },
+      preHandler: [validateQuery(CategoryQuerySchema)],
+    },
+    async (request, reply) => {
+      try {
+        const { survey_id, category } = request.query as any;
+        const analyticsService = serviceContainer.getAnalyticsService();
+
+        const categories = await analyticsService.getCategoryAnalysis(survey_id, category);
+        return reply.code(200).send({ categories });
+      } catch (error: any) {
+        return reply.code(500).send({
+          error: {
+            code: 'ANALYTICS_ERROR',
+            message: 'Failed to generate category analysis',
+          },
+        });
+      }
     },
   );
 };
