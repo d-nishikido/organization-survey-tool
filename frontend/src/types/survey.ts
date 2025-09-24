@@ -1,4 +1,4 @@
-export type SurveyStatus = 'draft' | 'active' | 'closed' | 'archived';
+export type SurveyStatus = 'draft' | 'active' | 'paused' | 'closed' | 'archived';
 
 export interface CreateSurveyDto {
   title: string;

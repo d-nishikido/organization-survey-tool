@@ -11,6 +11,7 @@ import { SurveyDetailPage } from './pages/SurveyDetailPage';
 import { SurveyPage } from './pages/SurveyPage';
 import { AdminDashboard } from './pages/AdminDashboard';
 import { SurveyManagement } from './pages/SurveyManagement';
+import { SurveyOperations } from './pages/SurveyOperations';
 import { SurveyForm } from './components/admin/SurveyForm';
 import { SurveyPreview } from './components/admin/SurveyPreview';
 
@@ -92,6 +93,14 @@ export function App(): JSX.Element {
                 element={
                   <HRRoute>
                     <SurveyPreview />
+                  </HRRoute>
+                }
+              />
+              <Route
+                path="/admin/surveys/:id/operations"
+                element={
+                  <HRRoute>
+                    <SurveyOperations />
                   </HRRoute>
                 }
               />
