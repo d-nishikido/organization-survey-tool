@@ -28,28 +28,7 @@ export const operationsRoutes: FastifyPluginAsync = async (fastify: FastifyInsta
   // Start a survey
   fastify.post(
     '/surveys/:id/start',
-    {
-      schema: {
-        description: 'Start a survey (Admin only)',
-        tags: ['operations'],
-        params: ParamsSchema,
-        response: {
-          200: SurveyOperationSchema,
-          404: {
-            type: 'object',
-            properties: {
-              error: {
-                type: 'object',
-                properties: {
-                  code: { type: 'string' },
-                  message: { type: 'string' },
-                },
-              },
-            },
-          },
-        },
-      },
-    },
+{},
     async (request, reply) => {
       try {
         const { id } = request.params as { id: number };
@@ -78,28 +57,7 @@ export const operationsRoutes: FastifyPluginAsync = async (fastify: FastifyInsta
   // Stop a survey
   fastify.post(
     '/surveys/:id/stop',
-    {
-      schema: {
-        description: 'Stop a survey (Admin only)',
-        tags: ['operations'],
-        params: ParamsSchema,
-        response: {
-          200: SurveyOperationSchema,
-          404: {
-            type: 'object',
-            properties: {
-              error: {
-                type: 'object',
-                properties: {
-                  code: { type: 'string' },
-                  message: { type: 'string' },
-                },
-              },
-            },
-          },
-        },
-      },
-    },
+{},
     async (request, reply) => {
       try {
         const { id } = request.params as { id: number };
@@ -128,28 +86,7 @@ export const operationsRoutes: FastifyPluginAsync = async (fastify: FastifyInsta
   // Pause a survey
   fastify.post(
     '/surveys/:id/pause',
-    {
-      schema: {
-        description: 'Pause an active survey (Admin only)',
-        tags: ['operations'],
-        params: ParamsSchema,
-        response: {
-          200: SurveyOperationSchema,
-          404: {
-            type: 'object',
-            properties: {
-              error: {
-                type: 'object',
-                properties: {
-                  code: { type: 'string' },
-                  message: { type: 'string' },
-                },
-              },
-            },
-          },
-        },
-      },
-    },
+{},
     async (request, reply) => {
       try {
         const { id } = request.params as { id: number };
@@ -178,28 +115,7 @@ export const operationsRoutes: FastifyPluginAsync = async (fastify: FastifyInsta
   // Resume a paused survey
   fastify.post(
     '/surveys/:id/resume',
-    {
-      schema: {
-        description: 'Resume a paused survey (Admin only)',
-        tags: ['operations'],
-        params: ParamsSchema,
-        response: {
-          200: SurveyOperationSchema,
-          404: {
-            type: 'object',
-            properties: {
-              error: {
-                type: 'object',
-                properties: {
-                  code: { type: 'string' },
-                  message: { type: 'string' },
-                },
-              },
-            },
-          },
-        },
-      },
-    },
+{},
     async (request, reply) => {
       try {
         const { id } = request.params as { id: number };
@@ -228,29 +144,7 @@ export const operationsRoutes: FastifyPluginAsync = async (fastify: FastifyInsta
   // Create a reminder for a survey
   fastify.post(
     '/surveys/:id/reminders',
-    {
-      schema: {
-        description: 'Create a reminder for a survey (Admin only)',
-        tags: ['operations'],
-        params: ParamsSchema,
-        body: CreateReminderSchema,
-        response: {
-          201: ReminderSettingsSchema,
-          400: {
-            type: 'object',
-            properties: {
-              error: {
-                type: 'object',
-                properties: {
-                  code: { type: 'string' },
-                  message: { type: 'string' },
-                },
-              },
-            },
-          },
-        },
-      },
-    },
+{},
     async (request, reply) => {
       try {
         const { id } = request.params as { id: number };
@@ -283,19 +177,7 @@ export const operationsRoutes: FastifyPluginAsync = async (fastify: FastifyInsta
   // Get all reminders for a survey
   fastify.get(
     '/surveys/:id/reminders',
-    {
-      schema: {
-        description: 'Get all reminders for a survey',
-        tags: ['operations'],
-        params: ParamsSchema,
-        response: {
-          200: {
-            type: 'array',
-            items: ReminderSettingsSchema,
-          },
-        },
-      },
-    },
+{},
     async (request, reply) => {
       try {
         const { id } = request.params as { id: number };
@@ -316,29 +198,7 @@ export const operationsRoutes: FastifyPluginAsync = async (fastify: FastifyInsta
   // Update a reminder
   fastify.put(
     '/surveys/:id/reminders/:reminderId',
-    {
-      schema: {
-        description: 'Update a reminder (Admin only)',
-        tags: ['operations'],
-        params: ReminderParamsSchema,
-        body: UpdateReminderSchema,
-        response: {
-          200: ReminderSettingsSchema,
-          404: {
-            type: 'object',
-            properties: {
-              error: {
-                type: 'object',
-                properties: {
-                  code: { type: 'string' },
-                  message: { type: 'string' },
-                },
-              },
-            },
-          },
-        },
-      },
-    },
+{},
     async (request, reply) => {
       try {
         const { reminderId } = request.params as { id: number; reminderId: number };
@@ -371,31 +231,7 @@ export const operationsRoutes: FastifyPluginAsync = async (fastify: FastifyInsta
   // Delete a reminder
   fastify.delete(
     '/surveys/:id/reminders/:reminderId',
-    {
-      schema: {
-        description: 'Delete a reminder (Admin only)',
-        tags: ['operations'],
-        params: ReminderParamsSchema,
-        response: {
-          204: {
-            type: 'null',
-            description: 'Reminder deleted successfully',
-          },
-          404: {
-            type: 'object',
-            properties: {
-              error: {
-                type: 'object',
-                properties: {
-                  code: { type: 'string' },
-                  message: { type: 'string' },
-                },
-              },
-            },
-          },
-        },
-      },
-    },
+{},
     async (request, reply) => {
       try {
         const { reminderId } = request.params as { id: number; reminderId: number };
@@ -427,16 +263,6 @@ export const operationsRoutes: FastifyPluginAsync = async (fastify: FastifyInsta
   // Get participation statistics for a survey
   fastify.get(
     '/surveys/:id/participation',
-    {
-      schema: {
-        description: 'Get participation statistics for a survey',
-        tags: ['operations'],
-        params: ParamsSchema,
-        response: {
-          200: ParticipationStatsSchema,
-        },
-      },
-    },
     async (request, reply) => {
       try {
         const { id } = request.params as { id: number };
@@ -457,28 +283,7 @@ export const operationsRoutes: FastifyPluginAsync = async (fastify: FastifyInsta
   // Get operation logs for a survey
   fastify.get(
     '/surveys/:id/logs',
-    {
-      schema: {
-        description: 'Get operation logs for a survey (Admin only)',
-        tags: ['operations'],
-        params: ParamsSchema,
-        response: {
-          200: {
-            type: 'array',
-            items: {
-              type: 'object',
-              properties: {
-                id: { type: 'number' },
-                survey_id: { type: 'number' },
-                action: { type: 'string' },
-                performed_at: { type: 'string' },
-                performed_by: { type: 'string', nullable: true },
-              },
-            },
-          },
-        },
-      },
-    },
+{},
     async (request, reply) => {
       try {
         const { id } = request.params as { id: number };
