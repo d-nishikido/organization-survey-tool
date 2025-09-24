@@ -24,7 +24,7 @@ export function SurveyListPage(): JSX.Element {
       const response = await SurveyService.getSurveys({
         page: currentPage,
         pageSize: 6,
-        status: undefined
+        status: 'active'
       });
       
       setSurveys(response.data || []);
