@@ -1,9 +1,10 @@
 
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { UserRole } from '@/types/auth';
 
 export function LoginPage(): JSX.Element {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, login } = useAuth();
   const location = useLocation();
 
   // Redirect to intended page or home if already authenticated
@@ -11,6 +12,35 @@ export function LoginPage(): JSX.Element {
     const from = (location.state as any)?.from?.pathname || '/';
     return <Navigate to={from} replace />;
   }
+
+  // Demo login handler
+  const handleDemoLogin = (role: UserRole) => {
+    const demoUsers = {
+      hr: {
+        id: 'demo-hr',
+        email: 'hr@example.com',
+        name: 'HR Manager',
+        role: 'hr' as UserRole,
+        department: '人事部'
+      },
+      admin: {
+        id: 'demo-admin',
+        email: 'admin@example.com',
+        name: 'System Admin',
+        role: 'admin' as UserRole,
+        department: 'IT部'
+      },
+      employee: {
+        id: 'demo-emp',
+        email: 'employee@example.com',
+        name: 'Employee User',
+        role: 'employee' as UserRole,
+        department: '営業部'
+      }
+    };
+    
+    login(demoUsers[role]);
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
@@ -68,6 +98,64 @@ export function LoginPage(): JSX.Element {
                     </p>
                   </div>
                 </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Demo Login Section */}
+          <div className="mt-6">
+            <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
+              <div className="mb-3">
+                <h3 className="text-sm font-medium text-blue-800">
+                  デモログイン（開発・テスト用）
+                </h3>
+                <p className="mt-1 text-xs text-blue-600">
+                  以下のデモユーザーでログインできます
+                </p>
+              </div>
+              
+              <div className="space-y-2">
+                <button
+                  type="button"
+                  onClick={() => handleDemoLogin('hr')}
+                  className="w-full flex justify-between items-center py-2 px-3 border border-blue-300 rounded-md shadow-sm text-sm bg-white hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                >
+                  <div className="flex flex-col items-start">
+                    <span className="font-medium text-gray-900">HR Manager</span>
+                    <span className="text-xs text-gray-500">調査作成・管理が可能</span>
+                  </div>
+                  <span className="text-blue-600">→</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => handleDemoLogin('admin')}
+                  className="w-full flex justify-between items-center py-2 px-3 border border-blue-300 rounded-md shadow-sm text-sm bg-white hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                >
+                  <div className="flex flex-col items-start">
+                    <span className="font-medium text-gray-900">System Admin</span>
+                    <span className="text-xs text-gray-500">全機能へのアクセス可能</span>
+                  </div>
+                  <span className="text-blue-600">→</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => handleDemoLogin('employee')}
+                  className="w-full flex justify-between items-center py-2 px-3 border border-blue-300 rounded-md shadow-sm text-sm bg-white hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                >
+                  <div className="flex flex-col items-start">
+                    <span className="font-medium text-gray-900">Employee</span>
+                    <span className="text-xs text-gray-500">調査回答のみ可能</span>
+                  </div>
+                  <span className="text-blue-600">→</span>
+                </button>
+              </div>
+
+              <div className="mt-3 pt-3 border-t border-blue-200">
+                <p className="text-xs text-blue-600">
+                  ※ この機能は開発環境専用です。本番環境では無効化されます。
+                </p>
               </div>
             </div>
           </div>
