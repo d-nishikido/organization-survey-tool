@@ -27,7 +27,7 @@ export function SurveyListPage(): JSX.Element {
         status: undefined
       });
       
-      setSurveys(response.items);
+      setSurveys(response.data || []);
       setTotalPages(Math.ceil(response.total / 6));
     } catch (err) {
       setError('調査の読み込みに失敗しました。');

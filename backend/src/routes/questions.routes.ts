@@ -20,13 +20,10 @@ export const questionsRoutes: FastifyPluginAsync = async (fastify: FastifyInstan
   // Get all questions
   fastify.get(
     '/questions',
-    {
-      schema: {
-        description: 'Get all questions with pagination and filtering',
-        tags: ['questions'],
-        querystring: QuestionQuerySchema,
-        response: {
-          200: QuestionListSchema,
+{},
+              pageSize: { type: 'number' }
+            }
+          },
         },
       },
       preHandler: [validateQuery(QuestionQuerySchema)],
@@ -51,23 +48,7 @@ export const questionsRoutes: FastifyPluginAsync = async (fastify: FastifyInstan
   // Get single question
   fastify.get(
     '/questions/:id',
-    {
-      schema: {
-        description: 'Get a specific question by ID',
-        tags: ['questions'],
-        params: ParamsSchema,
-        response: {
-          200: QuestionResponseSchema,
-          404: {
-            type: 'object',
-            properties: {
-              error: {
-                type: 'object',
-                properties: {
-                  code: { type: 'string' },
-                  message: { type: 'string' },
-                },
-              },
+{},
             },
           },
         },
@@ -104,23 +85,7 @@ export const questionsRoutes: FastifyPluginAsync = async (fastify: FastifyInstan
   // Create question (Admin only)
   fastify.post(
     '/questions',
-    {
-      schema: {
-        description: 'Create a new question (Admin only)',
-        tags: ['questions'],
-        body: CreateQuestionSchema,
-        response: {
-          201: QuestionResponseSchema,
-          400: {
-            type: 'object',
-            properties: {
-              error: {
-                type: 'object',
-                properties: {
-                  code: { type: 'string' },
-                  message: { type: 'string' },
-                },
-              },
+{},
             },
           },
         },
@@ -162,24 +127,7 @@ export const questionsRoutes: FastifyPluginAsync = async (fastify: FastifyInstan
   // Update question (Admin only)
   fastify.put(
     '/questions/:id',
-    {
-      schema: {
-        description: 'Update an existing question (Admin only)',
-        tags: ['questions'],
-        params: ParamsSchema,
-        body: UpdateQuestionSchema,
-        response: {
-          200: QuestionResponseSchema,
-          404: {
-            type: 'object',
-            properties: {
-              error: {
-                type: 'object',
-                properties: {
-                  code: { type: 'string' },
-                  message: { type: 'string' },
-                },
-              },
+{},
             },
           },
         },
@@ -230,25 +178,7 @@ export const questionsRoutes: FastifyPluginAsync = async (fastify: FastifyInstan
   // Delete question (Admin only)
   fastify.delete(
     '/questions/:id',
-    {
-      schema: {
-        description: 'Delete a question (Admin only)',
-        tags: ['questions'],
-        params: ParamsSchema,
-        response: {
-          204: {
-            type: 'null',
-            description: 'Question deleted successfully',
-          },
-          404: {
-            type: 'object',
-            properties: {
-              error: {
-                type: 'object',
-                properties: {
-                  code: { type: 'string' },
-                  message: { type: 'string' },
-                },
+{},
               },
             },
           },

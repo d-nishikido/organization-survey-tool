@@ -20,16 +20,7 @@ export const surveysRoutes: FastifyPluginAsync = async (fastify: FastifyInstance
   // Get all surveys
   fastify.get(
     '/surveys',
-    {
-      schema: {
-        description: 'Get all surveys with pagination and filtering',
-        tags: ['surveys'],
-        querystring: SurveyQuerySchema,
-        response: {
-          200: SurveyListSchema,
-        },
-      },
-    },
+{},
     async (request, reply) => {
       try {
         const query = request.query as z.infer<typeof SurveyQuerySchema>;
@@ -50,28 +41,6 @@ export const surveysRoutes: FastifyPluginAsync = async (fastify: FastifyInstance
   // Get single survey
   fastify.get(
     '/surveys/:id',
-    {
-      schema: {
-        description: 'Get a specific survey by ID',
-        tags: ['surveys'],
-        params: ParamsSchema,
-        response: {
-          200: SurveyResponseSchema,
-          404: {
-            type: 'object',
-            properties: {
-              error: {
-                type: 'object',
-                properties: {
-                  code: { type: 'string' },
-                  message: { type: 'string' },
-                },
-              },
-            },
-          },
-        },
-      },
-    },
     async (request, reply) => {
       try {
         const { id } = request.params as { id: number };
@@ -102,28 +71,6 @@ export const surveysRoutes: FastifyPluginAsync = async (fastify: FastifyInstance
   // Create survey (Admin only)
   fastify.post(
     '/surveys',
-    {
-      schema: {
-        description: 'Create a new survey (Admin only)',
-        tags: ['surveys'],
-        body: CreateSurveySchema,
-        response: {
-          201: SurveyResponseSchema,
-          400: {
-            type: 'object',
-            properties: {
-              error: {
-                type: 'object',
-                properties: {
-                  code: { type: 'string' },
-                  message: { type: 'string' },
-                },
-              },
-            },
-          },
-        },
-      },
-    },
     async (request, reply) => {
       try {
         const surveyData = request.body as z.infer<typeof CreateSurveySchema>;
@@ -158,29 +105,6 @@ export const surveysRoutes: FastifyPluginAsync = async (fastify: FastifyInstance
   // Update survey (Admin only)
   fastify.put(
     '/surveys/:id',
-    {
-      schema: {
-        description: 'Update an existing survey (Admin only)',
-        tags: ['surveys'],
-        params: ParamsSchema,
-        body: UpdateSurveySchema,
-        response: {
-          200: SurveyResponseSchema,
-          404: {
-            type: 'object',
-            properties: {
-              error: {
-                type: 'object',
-                properties: {
-                  code: { type: 'string' },
-                  message: { type: 'string' },
-                },
-              },
-            },
-          },
-        },
-      },
-    },
     async (request, reply) => {
       try {
         const { id } = request.params as { id: number };
@@ -228,31 +152,6 @@ export const surveysRoutes: FastifyPluginAsync = async (fastify: FastifyInstance
   // Delete survey (Admin only)
   fastify.delete(
     '/surveys/:id',
-    {
-      schema: {
-        description: 'Delete a survey (Admin only)',
-        tags: ['surveys'],
-        params: ParamsSchema,
-        response: {
-          204: {
-            type: 'null',
-            description: 'Survey deleted successfully',
-          },
-          404: {
-            type: 'object',
-            properties: {
-              error: {
-                type: 'object',
-                properties: {
-                  code: { type: 'string' },
-                  message: { type: 'string' },
-                },
-              },
-            },
-          },
-        },
-      },
-    },
     async (request, reply) => {
       try {
         const { id } = request.params as { id: number };
