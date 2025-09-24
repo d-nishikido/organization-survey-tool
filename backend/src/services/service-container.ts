@@ -2,6 +2,7 @@ import { ConnectionPool, createOptimizedPoolConfig } from '../database/connectio
 import { ResponseService } from './response.service';
 import { SessionService } from './session.service';
 import { AnalyticsService } from './analytics.service';
+import { ReportService } from './report.service';
 import { logger } from '../utils/logger';
 
 /**
@@ -13,6 +14,7 @@ export class ServiceContainer {
   private responseService!: ResponseService;
   private sessionService!: SessionService;
   private analyticsService!: AnalyticsService;
+  private reportService!: ReportService;
   private isInitialized = false;
 
   private constructor() {
@@ -56,6 +58,7 @@ export class ServiceContainer {
         pool: this.connectionPool,
       });
       this.analyticsService = new AnalyticsService(this.connectionPool);
+      this.reportService = new ReportService(this.connectionPool);
 
       this.isInitialized = true;
       logger.info('Service container initialized successfully');
@@ -99,6 +102,14 @@ export class ServiceContainer {
   }
 
   /**
+   * Get report service
+   */
+  getReportService(): ReportService {
+    this.ensureInitialized();
+    return this.reportService;
+  }
+
+  /**
    * Graceful shutdown of all services
    */
   async shutdown(): Promise<void> {
@@ -133,7 +144,7 @@ export class ServiceContainer {
   }> {
     try {
       const databaseHealthy = this.connectionPool ? await this.connectionPool.isHealthy() : false;
-      const servicesHealthy = this.isInitialized && !!this.responseService && !!this.sessionService && !!this.analyticsService;
+      const servicesHealthy = this.isInitialized && !!this.responseService && !!this.sessionService && !!this.analyticsService && !!this.reportService;
 
       return {
         database: databaseHealthy,

@@ -2,6 +2,7 @@ import { FastifyInstance, FastifyPluginAsync } from 'fastify';
 import { z } from 'zod';
 import { validateQuery } from '../middleware/validation';
 import { serviceContainer } from '../services/service-container';
+import { ReportRequest } from '../types/reports';
 
 const AnalyticsQuerySchema = z.object({
   survey_id: z.coerce.number().positive(),
@@ -84,6 +85,30 @@ const CategoryAnalysisResponseSchema = z.object({
 const CategoryQuerySchema = z.object({
   survey_id: z.coerce.number().positive(),
   category: z.string().optional(),
+});
+
+const ReportRequestSchema = z.object({
+  surveyId: z.number().positive(),
+  format: z.enum(['pdf', 'excel', 'csv']),
+  template: z.enum(['summary', 'comparison', 'trends', 'detailed']),
+  options: z.object({
+    includeRawData: z.boolean().optional(),
+    includeCharts: z.boolean().optional(),
+    dateRange: z.object({
+      startDate: z.string().optional(),
+      endDate: z.string().optional(),
+    }).optional(),
+    categories: z.array(z.string()).optional(),
+  }).optional(),
+});
+
+const ReportJobSchema = z.object({
+  id: z.string(),
+  status: z.enum(['pending', 'processing', 'completed', 'failed']),
+  createdAt: z.string(),
+  completedAt: z.string().optional(),
+  downloadUrl: z.string().optional(),
+  error: z.string().optional(),
 });
 
 export const analyticsRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
@@ -198,6 +223,141 @@ export const analyticsRoutes: FastifyPluginAsync = async (fastify: FastifyInstan
           error: {
             code: 'ANALYTICS_ERROR',
             message: 'Failed to generate category analysis',
+          },
+        });
+      }
+    },
+  );
+
+  // Generate report
+  fastify.post(
+    '/analytics/reports/generate',
+    {
+      schema: {
+        description: 'Generate a report for analytics data',
+        tags: ['analytics', 'reports'],
+        body: ReportRequestSchema,
+        response: {
+          200: z.object({
+            reportId: z.string(),
+          }),
+        },
+      },
+    },
+    async (request, reply) => {
+      try {
+        const reportRequest = request.body as ReportRequest;
+        const reportService = serviceContainer.getReportService();
+        
+        const { reportId } = await reportService.generateReport(reportRequest);
+        return reply.code(200).send({ reportId });
+      } catch (error: any) {
+        return reply.code(500).send({
+          error: {
+            code: 'REPORT_ERROR',
+            message: 'Failed to generate report',
+          },
+        });
+      }
+    },
+  );
+
+  // Get report status
+  fastify.get(
+    '/analytics/reports/:reportId/status',
+    {
+      schema: {
+        description: 'Get the status of a report generation job',
+        tags: ['analytics', 'reports'],
+        params: z.object({
+          reportId: z.string(),
+        }),
+        response: {
+          200: ReportJobSchema,
+          404: z.object({
+            error: z.object({
+              code: z.string(),
+              message: z.string(),
+            }),
+          }),
+        },
+      },
+    },
+    async (request, reply) => {
+      try {
+        const { reportId } = request.params as { reportId: string };
+        const reportService = serviceContainer.getReportService();
+        
+        const job = reportService.getReportStatus(reportId);
+        if (!job) {
+          return reply.code(404).send({
+            error: {
+              code: 'REPORT_NOT_FOUND',
+              message: 'Report not found',
+            },
+          });
+        }
+
+        return reply.code(200).send({
+          id: job.id,
+          status: job.status,
+          createdAt: job.createdAt.toISOString(),
+          completedAt: job.completedAt?.toISOString(),
+          downloadUrl: job.downloadUrl,
+          error: job.error,
+        });
+      } catch (error: any) {
+        return reply.code(500).send({
+          error: {
+            code: 'REPORT_ERROR',
+            message: 'Failed to get report status',
+          },
+        });
+      }
+    },
+  );
+
+  // Download report
+  fastify.get(
+    '/analytics/reports/:reportId/download',
+    {
+      schema: {
+        description: 'Download a completed report',
+        tags: ['analytics', 'reports'],
+        params: z.object({
+          reportId: z.string(),
+        }),
+      },
+    },
+    async (request, reply) => {
+      try {
+        const { reportId } = request.params as { reportId: string };
+        const reportService = serviceContainer.getReportService();
+        
+        const fileBuffer = await reportService.downloadReport(reportId);
+        if (!fileBuffer) {
+          return reply.code(404).send({
+            error: {
+              code: 'REPORT_NOT_FOUND',
+              message: 'Report not found or not ready for download',
+            },
+          });
+        }
+
+        const job = reportService.getReportStatus(reportId);
+        const format = job?.request.format || 'pdf';
+        const mimeType = format === 'pdf' ? 'application/pdf' : 
+                        format === 'excel' ? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' :
+                        'text/csv';
+        
+        reply.header('Content-Type', mimeType);
+        reply.header('Content-Disposition', `attachment; filename="report.${format === 'excel' ? 'xlsx' : format}"`);
+        return reply.send(fileBuffer);
+      } catch (error: any) {
+        return reply.code(500).send({
+          error: {
+            code: 'REPORT_ERROR',
+            message: 'Failed to download report',
           },
         });
       }

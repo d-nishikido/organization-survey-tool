@@ -224,23 +224,58 @@ const ExportTools: React.FC<ExportToolsProps> = ({ onExport, surveyId, disabled 
     }
   };
 
-  const handleAdvancedExport = async (format: 'csv' | 'excel' | 'pdf', _options: ExportOptions) => {
+  const handleAdvancedExport = async (format: 'csv' | 'excel' | 'pdf', options: ExportOptions) => {
     try {
-      // Here you would typically call the analytics service with the options
       if (surveyId) {
-        // Convert pdf to json for compatibility with existing service
-        const exportFormat = format === 'pdf' ? 'json' : format;
-        const blob = await analyticsService.exportData(surveyId, exportFormat);
+        // Create report request with proper options
+        const reportRequest = {
+          surveyId: parseInt(surveyId),
+          format,
+          template: 'summary' as const,
+          options: {
+            includeRawData: options.includeRawData,
+            includeCharts: options.includeCharts,
+            dateRange: options.dateRange,
+            categories: options.categories,
+          },
+        };
+
+        // Generate report
+        const generateResponse = await analyticsService.generateReport(reportRequest);
+        const { reportId } = generateResponse.data;
+
+        // Poll for completion
+        let attempts = 0;
+        const maxAttempts = 30; // 30 seconds max wait
         
-        // Create download link
-        const url = window.URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `survey-analytics-${surveyId}.${format}`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        window.URL.revokeObjectURL(url);
+        const pollStatus = async (): Promise<void> => {
+          const statusResponse = await analyticsService.getReportStatus(reportId);
+          const job = statusResponse.data;
+          
+          if (job.status === 'completed') {
+            // Download the report
+            const blob = await analyticsService.downloadReport(reportId);
+            
+            // Create download link
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `survey-analytics-${surveyId}.${format === 'excel' ? 'xlsx' : format}`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(url);
+          } else if (job.status === 'failed') {
+            throw new Error(job.error || 'Report generation failed');
+          } else if (attempts < maxAttempts) {
+            attempts++;
+            setTimeout(pollStatus, 1000); // Wait 1 second before next check
+          } else {
+            throw new Error('Report generation timed out');
+          }
+        };
+
+        await pollStatus();
       }
     } catch (error) {
       console.error('Advanced export failed:', error);

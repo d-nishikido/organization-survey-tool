@@ -1,5 +1,6 @@
 import apiClient from '../client';
 import { ApiResponse } from '../types';
+import { ReportRequest, ReportJob } from '../../types/reports';
 
 interface DashboardData {
   totalSurveys: number;
@@ -173,7 +174,43 @@ export class AnalyticsService {
   }
 
   /**
-   * Export analytics data
+   * Generate report
+   */
+  static async generateReport(
+    request: ReportRequest
+  ): Promise<ApiResponse<{ reportId: string }>> {
+    return apiClient.post<ApiResponse<{ reportId: string }>>(
+      `${this.BASE_PATH}/reports/generate`,
+      request
+    );
+  }
+
+  /**
+   * Get report status
+   */
+  static async getReportStatus(
+    reportId: string
+  ): Promise<ApiResponse<ReportJob>> {
+    return apiClient.get<ApiResponse<ReportJob>>(
+      `${this.BASE_PATH}/reports/${reportId}/status`
+    );
+  }
+
+  /**
+   * Download report
+   */
+  static async downloadReport(reportId: string): Promise<Blob> {
+    const response = await apiClient.getInstance().get(
+      `${this.BASE_PATH}/reports/${reportId}/download`,
+      {
+        responseType: 'blob',
+      }
+    );
+    return response.data;
+  }
+
+  /**
+   * Export analytics data (legacy method - calls new report API)
    */
   static async exportData(
     surveyId: string,
