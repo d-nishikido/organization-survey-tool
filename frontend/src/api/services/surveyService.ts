@@ -1,6 +1,7 @@
 import apiClient from '../client';
+import apiClient from '../client';
 import { ApiResponse, PaginatedResponse } from '../types';
-import { Survey, Question, SurveyResponse } from '@/types/survey';
+import { Survey, Question, SurveyResponse, CreateSurveyDto } from '@/types/survey';
 
 export class SurveyService {
   private static readonly BASE_PATH = '/api/surveys';
@@ -14,6 +15,13 @@ export class SurveyService {
     status?: 'draft' | 'active' | 'closed' | 'archived';
   }): Promise<PaginatedResponse<Survey>> {
     return apiClient.get<PaginatedResponse<Survey>>(this.BASE_PATH, { params });
+  }
+
+  /**
+   * Create a new survey
+   */
+  static async createSurvey(surveyData: CreateSurveyDto): Promise<ApiResponse<Survey>> {
+    return apiClient.post<ApiResponse<Survey>>(this.BASE_PATH, surveyData);
   }
 
   /**

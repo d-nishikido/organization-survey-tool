@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { AdminLayout } from './AdminLayout';
 import { Card, Button, Input, Alert, Loading } from '../ui';
 import { FormField, ValidationMessage } from '../forms';
+import { SurveyService } from '../../api/services/surveyService';
 import type { CreateSurveyDto, SurveyResponse, SurveyStatus } from '../../types/survey';
 
 interface SurveyFormData {
@@ -107,7 +108,13 @@ export function SurveyForm(): JSX.Element {
         newErrors.end_date = '終了日は開始日より後の日付を選択してください';
       }
       
-      if (startDate < new Date()) {
+      // 今日の日付を00:00:00にセット
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const inputDate = new Date(formData.start_date);
+      inputDate.setHours(0, 0, 0, 0);
+      
+      if (inputDate < today) {
         newErrors.start_date = '開始日は今日以降の日付を選択してください';
       }
     }
@@ -144,10 +151,10 @@ export function SurveyForm(): JSX.Element {
         status: saveAsDraft ? 'draft' : formData.status,
       };
 
-      // Mock API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Call actual API to create survey
+      const response = await SurveyService.createSurvey(submitData);
       
-      console.log('Survey data:', submitData);
+      console.log('Survey saved:', response);
       navigate('/admin/surveys');
     } catch (err) {
       setErrors({ general: '保存に失敗しました。再度お試しください。' });
