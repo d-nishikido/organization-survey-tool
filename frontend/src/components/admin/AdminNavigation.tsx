@@ -53,8 +53,9 @@ export function AdminNavigation(): JSX.Element {
       </div>
 
       {navigation.map((item) => {
-        const isActive = location.pathname === item.href ||
-          (item.href !== '/admin' && location.pathname.startsWith(item.href));
+        const isActive = item.href === '/admin' 
+          ? location.pathname === '/admin'
+          : location.pathname.startsWith(item.href);
 
         return (
           <NavLink

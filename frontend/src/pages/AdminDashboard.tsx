@@ -1,9 +1,83 @@
+import { useState, useEffect } from 'react';
 import { AdminLayout, AdminSection, PermissionBadge } from '@/components/admin';
 import { useAuth } from '@/contexts/AuthContext';
 import Card from '@/components/ui/Card';
+import { Loading, Alert } from '@/components/ui';
+import AdminService, { AdminStats, RecentActivity } from '@/api/services/adminService';
 
 export function AdminDashboard(): JSX.Element {
   const { user } = useAuth();
+  const [stats, setStats] = useState<AdminStats | null>(null);
+  const [recentActivity, setRecentActivity] = useState<RecentActivity[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        
+        // For now, use mock data but with proper API structure
+        // TODO: Replace with actual API calls when backend is ready
+        await new Promise(resolve => setTimeout(resolve, 500)); // Simulate API delay
+        
+        const mockStats: AdminStats = {
+          active_surveys: 3,
+          total_responses: 1247,
+          response_rate: 78.3,
+          avg_completion_time: 12
+        };
+        
+        const mockActivity: RecentActivity[] = [
+          {
+            id: 1,
+            type: 'survey_created',
+            title: '新しい調査「2024年度エンゲージメント調査」が作成されました',
+            description: '2時間前',
+            timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+            icon: '📝'
+          },
+          {
+            id: 2,
+            type: 'responses_received',
+            title: '25件の新しい回答が収集されました',
+            description: '4時間前',
+            timestamp: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(),
+            icon: '✅'
+          },
+          {
+            id: 3,
+            type: 'report_generated',
+            title: '週次分析レポートが生成されました',
+            description: '1日前',
+            timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
+            icon: '📊'
+          }
+        ];
+        
+        setStats(mockStats);
+        setRecentActivity(mockActivity);
+      } catch (err) {
+        console.error('Failed to fetch dashboard data:', err);
+        setError('ダッシュボードデータの取得に失敗しました');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDashboardData();
+  }, []);
+
+  if (loading) {
+    return (
+      <AdminLayout>
+        <div className="flex justify-center items-center h-64">
+          <Loading size="lg" />
+        </div>
+      </AdminLayout>
+    );
+  }
 
   return (
     <AdminLayout>
@@ -25,6 +99,13 @@ export function AdminDashboard(): JSX.Element {
           </div>
         </div>
 
+        {/* Error Display */}
+        {error && (
+          <Alert variant="danger" title="エラー">
+            {error}
+          </Alert>
+        )}
+
         {/* Stats Grid */}
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
           <Card variant="default" padding="md">
@@ -33,6 +114,80 @@ export function AdminDashboard(): JSX.Element {
                 <div className="w-8 h-8 bg-blue-500 rounded-md flex items-center justify-center">
                   <span className="text-white text-lg">📊</span>
                 </div>
+              </div>
+              <div className="ml-5 w-0 flex-1">
+                <dl>
+                  <dt className="text-sm font-medium text-gray-500 truncate">
+                    アクティブ調査
+                  </dt>
+                  <dd className="text-lg font-medium text-gray-900">
+                    {stats?.active_surveys || 0}
+                  </dd>
+                </dl>
+              </div>
+            </div>
+          </Card>
+
+          <Card variant="default" padding="md">
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <div className="w-8 h-8 bg-green-500 rounded-md flex items-center justify-center">
+                  <span className="text-white text-lg">👥</span>
+                </div>
+              </div>
+              <div className="ml-5 w-0 flex-1">
+                <dl>
+                  <dt className="text-sm font-medium text-gray-500 truncate">
+                    総回答数
+                  </dt>
+                  <dd className="text-lg font-medium text-gray-900">
+                    {stats?.total_responses?.toLocaleString() || 0}
+                  </dd>
+                </dl>
+              </div>
+            </div>
+          </Card>
+
+          <Card variant="default" padding="md">
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <div className="w-8 h-8 bg-yellow-500 rounded-md flex items-center justify-center">
+                  <span className="text-white text-lg">📈</span>
+                </div>
+              </div>
+              <div className="ml-5 w-0 flex-1">
+                <dl>
+                  <dt className="text-sm font-medium text-gray-500 truncate">
+                    回答率
+                  </dt>
+                  <dd className="text-lg font-medium text-gray-900">
+                    {stats?.response_rate ? `${stats.response_rate}%` : '0%'}
+                  </dd>
+                </dl>
+              </div>
+            </div>
+          </Card>
+
+          <Card variant="default" padding="md">
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <div className="w-8 h-8 bg-purple-500 rounded-md flex items-center justify-center">
+                  <span className="text-white text-lg">⏱️</span>
+                </div>
+              </div>
+              <div className="ml-5 w-0 flex-1">
+                <dl>
+                  <dt className="text-sm font-medium text-gray-500 truncate">
+                    平均回答時間
+                  </dt>
+                  <dd className="text-lg font-medium text-gray-900">
+                    {stats?.avg_completion_time ? `${stats.avg_completion_time}分` : '0分'}
+                  </dd>
+                </dl>
+              </div>
+            </div>
+          </Card>
+        </div>
               </div>
               <div className="ml-5 w-0 flex-1">
                 <dl>
@@ -164,47 +319,26 @@ export function AdminDashboard(): JSX.Element {
           description="システムの最新動向"
         >
           <div className="space-y-4">
-            <div className="flex items-start space-x-3">
-              <div className="flex-shrink-0">
-                <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                  <span className="text-blue-600 text-sm">📝</span>
+            {recentActivity.map((activity) => (
+              <div key={activity.id} className="flex items-start space-x-3">
+                <div className="flex-shrink-0">
+                  <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                    <span className="text-blue-600 text-sm">{activity.icon}</span>
+                  </div>
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm text-gray-900">
+                    {activity.title}
+                  </p>
+                  <p className="text-sm text-gray-500">{activity.description}</p>
                 </div>
               </div>
-              <div className="min-w-0 flex-1">
-                <p className="text-sm text-gray-900">
-                  新しい調査「2024年度エンゲージメント調査」が作成されました
-                </p>
-                <p className="text-sm text-gray-500">2時間前</p>
-              </div>
-            </div>
-
-            <div className="flex items-start space-x-3">
-              <div className="flex-shrink-0">
-                <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                  <span className="text-green-600 text-sm">✅</span>
-                </div>
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="text-sm text-gray-900">
-                  25件の新しい回答が収集されました
-                </p>
-                <p className="text-sm text-gray-500">4時間前</p>
-              </div>
-            </div>
-
-            <div className="flex items-start space-x-3">
-              <div className="flex-shrink-0">
-                <div className="w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center">
-                  <span className="text-yellow-600 text-sm">📊</span>
-                </div>
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="text-sm text-gray-900">
-                  週次分析レポートが生成されました
-                </p>
-                <p className="text-sm text-gray-500">1日前</p>
-              </div>
-            </div>
+            ))}
+            {recentActivity.length === 0 && (
+              <p className="text-sm text-gray-500 text-center py-4">
+                最近のアクティビティはありません
+              </p>
+            )}
           </div>
         </AdminSection>
       </div>

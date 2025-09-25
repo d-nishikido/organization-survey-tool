@@ -6,7 +6,8 @@ class ApiClient {
   private baseURL: string;
 
   constructor() {
-    this.baseURL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+    // Use empty baseURL to allow Vite proxy to handle /api routes
+    this.baseURL = '';
     
     this.client = axios.create({
       baseURL: this.baseURL,

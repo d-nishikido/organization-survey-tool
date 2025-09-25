@@ -46,7 +46,8 @@ services:
     container_name: survey-frontend
     environment:
       NODE_ENV: development
-      VITE_API_URL: http://backend:3001
+      DOCKERIZED: "true"
+      VITE_API_URL: http://localhost:3001
     ports:
       - "5173:5173"
     volumes:
