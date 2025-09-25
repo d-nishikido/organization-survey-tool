@@ -18,46 +18,64 @@ export function AdminDashboard(): JSX.Element {
         setLoading(true);
         setError(null);
 
-        // For now, use mock data but with proper API structure
-        // TODO: Replace with actual API calls when backend is ready
-        await new Promise(resolve => setTimeout(resolve, 500)); // Simulate API delay
+        // Try to fetch real data from API
+        try {
+          const [statsResponse, activityResponse] = await Promise.all([
+            AdminService.getDashboardStats(),
+            AdminService.getRecentActivity(5)
+          ]);
 
-        const mockStats: AdminStats = {
-          active_surveys: 3,
-          total_responses: 1247,
-          response_rate: 78.3,
-          avg_completion_time: 12
-        };
-
-        const mockActivity: RecentActivity[] = [
-          {
-            id: 1,
-            type: 'survey_created',
-            title: '新しい調査「2024年度エンゲージメント調査」が作成されました',
-            description: '2時間前',
-            timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-            icon: '📝'
-          },
-          {
-            id: 2,
-            type: 'responses_received',
-            title: '25件の新しい回答が収集されました',
-            description: '4時間前',
-            timestamp: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(),
-            icon: '✅'
-          },
-          {
-            id: 3,
-            type: 'report_generated',
-            title: '週次分析レポートが生成されました',
-            description: '1日前',
-            timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-            icon: '📊'
+          if (statsResponse.data) {
+            setStats(statsResponse.data);
           }
-        ];
 
-        setStats(mockStats);
-        setRecentActivity(mockActivity);
+          if (activityResponse.data) {
+            setRecentActivity(activityResponse.data);
+          }
+        } catch (apiError) {
+          console.warn('API not available, falling back to mock data:', apiError);
+
+          // Fallback to mock data when API is not available
+          const mockStats: AdminStats = {
+            active_surveys: 3,
+            total_responses: 1247,
+            response_rate: 78.3,
+            avg_completion_time: 12
+          };
+
+          const mockActivity: RecentActivity[] = [
+            {
+              id: 1,
+              type: 'survey_created',
+              title: '新しい調査「2024年度エンゲージメント調査」が作成されました',
+              description: '2時間前',
+              timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+              icon: '📝'
+            },
+            {
+              id: 2,
+              type: 'responses_received',
+              title: '25件の新しい回答が収集されました',
+              description: '4時間前',
+              timestamp: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(),
+              icon: '✅'
+            },
+            {
+              id: 3,
+              type: 'report_generated',
+              title: '週次分析レポートが生成されました',
+              description: '1日前',
+              timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
+              icon: '📊'
+            }
+          ];
+
+          setStats(mockStats);
+          setRecentActivity(mockActivity);
+
+          // Set a warning message instead of error for fallback mode
+          setError('API接続なし - デモデータを表示中');
+        }
       } catch (err) {
         console.error('Failed to fetch dashboard data:', err);
         setError('ダッシュボードデータの取得に失敗しました');
@@ -99,9 +117,12 @@ export function AdminDashboard(): JSX.Element {
           </div>
         </div>
 
-        {/* Error Display */}
+        {/* Error/Warning Display */}
         {error && (
-          <Alert variant="danger" title="エラー">
+          <Alert
+            variant={error.includes('デモデータ') ? 'warning' : 'danger'}
+            title={error.includes('デモデータ') ? '開発モード' : 'エラー'}
+          >
             {error}
           </Alert>
         )}
