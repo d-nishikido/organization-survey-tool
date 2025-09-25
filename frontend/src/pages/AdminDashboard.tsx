@@ -17,18 +17,18 @@ export function AdminDashboard(): JSX.Element {
       try {
         setLoading(true);
         setError(null);
-        
+
         // For now, use mock data but with proper API structure
         // TODO: Replace with actual API calls when backend is ready
         await new Promise(resolve => setTimeout(resolve, 500)); // Simulate API delay
-        
+
         const mockStats: AdminStats = {
           active_surveys: 3,
           total_responses: 1247,
           response_rate: 78.3,
           avg_completion_time: 12
         };
-        
+
         const mockActivity: RecentActivity[] = [
           {
             id: 1,
@@ -55,7 +55,7 @@ export function AdminDashboard(): JSX.Element {
             icon: '📊'
           }
         ];
-        
+
         setStats(mockStats);
         setRecentActivity(mockActivity);
       } catch (err) {
@@ -182,80 +182,6 @@ export function AdminDashboard(): JSX.Element {
                   </dt>
                   <dd className="text-lg font-medium text-gray-900">
                     {stats?.avg_completion_time ? `${stats.avg_completion_time}分` : '0分'}
-                  </dd>
-                </dl>
-              </div>
-            </div>
-          </Card>
-        </div>
-              </div>
-              <div className="ml-5 w-0 flex-1">
-                <dl>
-                  <dt className="text-sm font-medium text-gray-500 truncate">
-                    アクティブ調査
-                  </dt>
-                  <dd className="text-lg font-medium text-gray-900">
-                    3
-                  </dd>
-                </dl>
-              </div>
-            </div>
-          </Card>
-
-          <Card variant="default" padding="md">
-            <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <div className="w-8 h-8 bg-green-500 rounded-md flex items-center justify-center">
-                  <span className="text-white text-lg">👥</span>
-                </div>
-              </div>
-              <div className="ml-5 w-0 flex-1">
-                <dl>
-                  <dt className="text-sm font-medium text-gray-500 truncate">
-                    総回答数
-                  </dt>
-                  <dd className="text-lg font-medium text-gray-900">
-                    1,247
-                  </dd>
-                </dl>
-              </div>
-            </div>
-          </Card>
-
-          <Card variant="default" padding="md">
-            <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <div className="w-8 h-8 bg-yellow-500 rounded-md flex items-center justify-center">
-                  <span className="text-white text-lg">📈</span>
-                </div>
-              </div>
-              <div className="ml-5 w-0 flex-1">
-                <dl>
-                  <dt className="text-sm font-medium text-gray-500 truncate">
-                    回答率
-                  </dt>
-                  <dd className="text-lg font-medium text-gray-900">
-                    78.3%
-                  </dd>
-                </dl>
-              </div>
-            </div>
-          </Card>
-
-          <Card variant="default" padding="md">
-            <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <div className="w-8 h-8 bg-purple-500 rounded-md flex items-center justify-center">
-                  <span className="text-white text-lg">⏱️</span>
-                </div>
-              </div>
-              <div className="ml-5 w-0 flex-1">
-                <dl>
-                  <dt className="text-sm font-medium text-gray-500 truncate">
-                    平均回答時間
-                  </dt>
-                  <dd className="text-lg font-medium text-gray-900">
-                    12分
                   </dd>
                 </dl>
               </div>
