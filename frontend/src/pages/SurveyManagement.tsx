@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { AdminLayout } from '../components/admin';
 import { Card, Button, Input, Loading, Alert } from '../components/ui';
 import type { SurveyResponse } from '../types/survey';
+import AdminService from '../api/services/adminService';
 
 const STATUS_COLORS = {
   draft: 'bg-gray-100 text-gray-800',
@@ -36,8 +37,8 @@ export function SurveyManagement(): JSX.Element {
       // Mock implementation - replace with actual API call
       await new Promise(resolve => setTimeout(resolve, 500));
       
-      // Mock data
-      const mockSurveys: SurveyResponse[] = [
+      // Mock data with various statuses
+      const allMockSurveys: SurveyResponse[] = [
         {
           id: 1,
           title: "2024年度エンゲージメント調査",
@@ -49,11 +50,51 @@ export function SurveyManagement(): JSX.Element {
           created_at: "2024-01-01T00:00:00Z",
           updated_at: "2024-01-01T00:00:00Z",
           response_count: 245
+        },
+        {
+          id: 2,
+          title: "Q4組織改善調査（下書き）",
+          description: "第4四半期の組織改善に向けた調査案",
+          status: "draft",
+          start_date: "2024-10-01T00:00:00Z",
+          end_date: "2024-10-31T23:59:59Z",
+          is_anonymous: true,
+          created_at: "2024-09-20T00:00:00Z",
+          updated_at: "2024-09-20T00:00:00Z",
+          response_count: 0
+        },
+        {
+          id: 3,
+          title: "満足度調査（終了）",
+          description: "前四半期の満足度調査",
+          status: "closed",
+          start_date: "2024-07-01T00:00:00Z",
+          end_date: "2024-07-31T23:59:59Z",
+          is_anonymous: true,
+          created_at: "2024-06-30T00:00:00Z",
+          updated_at: "2024-08-01T00:00:00Z",
+          response_count: 180
         }
       ];
       
-      setSurveys(mockSurveys);
-      setTotalCount(mockSurveys.length);
+      // Apply filters
+      let filteredSurveys = allMockSurveys;
+      
+      // Status filter
+      if (statusFilter) {
+        filteredSurveys = filteredSurveys.filter(survey => survey.status === statusFilter);
+      }
+      
+      // Search filter
+      if (searchTerm) {
+        filteredSurveys = filteredSurveys.filter(survey =>
+          survey.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          (survey.description && survey.description.toLowerCase().includes(searchTerm.toLowerCase()))
+        );
+      }
+      
+      setSurveys(filteredSurveys);
+      setTotalCount(filteredSurveys.length);
     } catch (err) {
       setError('調査の取得に失敗しました');
     } finally {

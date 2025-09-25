@@ -27,7 +27,10 @@ export default defineConfig(({ mode }) => {
       host: '0.0.0.0',
       proxy: {
         '/api': {
-          target: process.env.VITE_API_URL || 'http://localhost:3001',
+          // In Docker, proxy to the backend service; outside Docker, use localhost
+          target: process.env.NODE_ENV === 'development' && process.env.DOCKERIZED 
+            ? 'http://backend:3001'
+            : 'http://localhost:3001',
           changeOrigin: true,
         },
       },

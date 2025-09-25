@@ -44,6 +44,16 @@ const navigation: NavigationItem[] = [
 export function AdminNavigation(): JSX.Element {
   const location = useLocation();
 
+  const isItemActive = (item: NavigationItem): boolean => {
+    if (item.href === '/admin') {
+      // Dashboard: exact match only
+      return location.pathname === '/admin';
+    } else {
+      // Other pages: match if path starts with the href
+      return location.pathname.startsWith(item.href);
+    }
+  };
+
   return (
     <nav className="p-4 space-y-2">
       <div className="mb-6">
@@ -53,17 +63,16 @@ export function AdminNavigation(): JSX.Element {
       </div>
 
       {navigation.map((item) => {
-        const isActive = location.pathname === item.href ||
-          (item.href !== '/admin' && location.pathname.startsWith(item.href));
+        const isActive = isItemActive(item);
 
         return (
           <NavLink
             key={item.name}
             to={item.href}
-            className={({ isActive: linkActive }) =>
+            className={() =>
               clsx(
                 'group flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors',
-                (isActive || linkActive)
+                isActive
                   ? 'bg-blue-50 text-blue-700 border-l-4 border-blue-700'
                   : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
               )

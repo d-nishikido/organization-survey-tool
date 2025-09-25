@@ -69,6 +69,7 @@ export default defineConfig({
   // テストファイルの検索パターン
   testMatch: [
     '**/smoke.spec.ts', // Pre-commit時はSmokeテストのみ
+    '**/login-redirect.spec.ts', // ログインリダイレクトテスト
     // フルテスト時は以下も含める
     // '**/*.spec.ts',
     // '**/*.test.ts'

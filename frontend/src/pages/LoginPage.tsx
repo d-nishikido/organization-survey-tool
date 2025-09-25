@@ -1,16 +1,25 @@
 
-import { Navigate, useLocation } from 'react-router-dom';
+import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { UserRole } from '@/types/auth';
 
 export function LoginPage(): JSX.Element {
-  const { isAuthenticated, login } = useAuth();
+  const { isAuthenticated, login, user } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
 
-  // Redirect to intended page or home if already authenticated
+  // Redirect to intended page or role-based default if already authenticated
   if (isAuthenticated) {
-    const from = (location.state as any)?.from?.pathname || '/';
-    return <Navigate to={from} replace />;
+    const from = (location.state as any)?.from?.pathname;
+    if (from) {
+      return <Navigate to={from} replace />;
+    }
+    
+    // Redirect based on user role if no specific destination
+    if (user?.role === 'hr' || user?.role === 'admin') {
+      return <Navigate to="/admin" replace />;
+    }
+    return <Navigate to="/surveys" replace />;
   }
 
   // Demo login handler
@@ -40,6 +49,20 @@ export function LoginPage(): JSX.Element {
     };
     
     login(demoUsers[role]);
+    
+    // Navigate based on user role
+    switch(role) {
+      case 'hr':
+        navigate('/admin');  // HR managers go to admin dashboard
+        break;
+      case 'admin':
+        navigate('/admin');  // System admins also go to admin dashboard
+        break;
+      case 'employee':
+      default:
+        navigate('/surveys');  // Employees go to survey list
+        break;
+    }
   };
 
   return (
