@@ -4,3 +4,5 @@ export { default as Footer } from './Footer';
 export { default as Layout } from './Layout';
 export { default as ErrorBoundary } from './ErrorBoundary';
 export { ProgressBar } from './ProgressBar';
+export { EmployeeLayout } from './EmployeeLayout';
+export { EmployeeNavigation } from './EmployeeNavigation';
