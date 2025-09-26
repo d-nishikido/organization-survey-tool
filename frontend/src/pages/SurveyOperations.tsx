@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { AdminLayout } from '../components/admin';
 import { SurveyOperationPanel } from '../components/admin/SurveyOperationPanel';
 import { ReminderSettings } from '../components/admin/ReminderSettings';
 import { ParticipationMonitor } from '../components/admin/ParticipationMonitor';
 import { Card, Loading, Alert, Button } from '../components/ui';
-import { surveyService } from '../api/services';
+import { SurveyService } from '../api/services/surveyService';
 import type { SurveyResponse } from '../types/survey';
 
 export function SurveyOperations(): JSX.Element {
@@ -28,8 +29,8 @@ export function SurveyOperations(): JSX.Element {
     setError(null);
 
     try {
-      const data = await surveyService.getSurvey(surveyId);
-      setSurvey(data);
+      const response = await SurveyService.getSurveyById(surveyId.toString());
+      setSurvey(response.data);
     } catch (err) {
       setError('調査の取得に失敗しました');
     } finally {
