@@ -4,6 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { SurveyService } from '@/api/services';
 import { operationService } from '@/api/services';
 import { Survey } from '@/types/survey';
+import { EmployeeLayout } from '@/components/common';
 
 export function SurveyDetailPage(): JSX.Element {
   const { surveyId } = useParams<{ surveyId: string }>();
@@ -156,146 +157,95 @@ export function SurveyDetailPage(): JSX.Element {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <EmployeeLayout>
       <div className="container mx-auto py-12 px-4">
-        {/* Breadcrumb */}
-        <nav className="flex mb-8">
-          <ol className="inline-flex items-center space-x-1 md:space-x-3">
-            <li className="inline-flex items-center">
-              <Link to="/surveys" className="inline-flex items-center text-sm font-medium text-gray-700 hover:text-blue-600">
-                調査一覧
-              </Link>
-            </li>
-            <li>
-              <div className="flex items-center">
-                <svg className="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
-                </svg>
-                <span className="ml-1 text-sm font-medium text-gray-500">{survey.title}</span>
-              </div>
-            </li>
-          </ol>
-        </nav>
+        <div className="mb-8">
+          <Link 
+            to="/surveys" 
+            className="inline-flex items-center text-blue-600 hover:text-blue-800 transition-colors"
+          >
+            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
+            </svg>
+            調査一覧に戻る
+          </Link>
+        </div>
 
-        {/* Survey Details */}
         <div className="bg-white shadow-lg rounded-lg overflow-hidden">
           <div className="px-6 py-8">
-            <div className="flex items-start justify-between mb-6">
-              <div className="flex-1">
-                <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                  {survey.title}
-                </h1>
-                <div className="flex items-center space-x-4">
-                  {getStatusBadge(survey.status)}
-                </div>
-              </div>
+            <div className="flex items-center justify-between mb-6">
+              <h1 className="text-3xl font-bold text-gray-900">{survey?.title}</h1>
+              <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                survey?.status === 'active' 
+                  ? 'bg-green-100 text-green-800' 
+                  : 'bg-gray-100 text-gray-800'
+              }`}>
+                {survey?.status === 'active' ? '実施中' : '停止中'}
+              </span>
             </div>
 
-            <div className="prose prose-gray max-w-none mb-8">
-              <p className="text-lg text-gray-600 leading-relaxed">
-                {survey.description || '詳細な説明はありません。'}
-              </p>
-            </div>
-
-            {/* Survey Information Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-              <div className="bg-gray-50 rounded-lg p-4">
-                <div className="text-sm font-medium text-gray-500">回答数</div>
-                <div className="text-2xl font-bold text-gray-900">
-                  {survey.response_count || 0}件
-                </div>
-              </div>
-
-              {survey.questionCount && (
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <div className="text-sm font-medium text-gray-500">質問数</div>
-                  <div className="text-2xl font-bold text-gray-900">
-                    {survey.questionCount}問
-                  </div>
-                </div>
-              )}
-
-              {survey.start_date && (
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <div className="text-sm font-medium text-gray-500">開始日</div>
-                  <div className="text-lg font-semibold text-gray-900">
-                    {formatDate(survey.start_date)}
-                  </div>
-                </div>
-              )}
-
-              {survey.end_date && (
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <div className="text-sm font-medium text-gray-500">終了日</div>
-                  <div className="text-lg font-semibold text-gray-900">
-                    {formatDate(survey.end_date)}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Session Information */}
-            {sessionId && (
-              <div className="mb-8 bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <h3 className="text-sm font-medium text-blue-800 mb-2">セッション情報</h3>
-                <p className="text-sm text-blue-700">
-                  匿名セッションID: {sessionId.substring(0, 16)}...
-                </p>
-                <p className="text-xs text-blue-600 mt-1">
-                  このセッションIDにより、回答の重複を防ぎます。
+            {survey?.description && (
+              <div className="mb-8">
+                <h2 className="text-lg font-semibold text-gray-900 mb-3">調査の概要</h2>
+                <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
+                  {survey.description}
                 </p>
               </div>
             )}
 
-            {/* Action Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4">
-              {survey.status === 'active' ? (
-                <button
-                  onClick={handleStartSurvey}
-                  className="px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center"
-                >
-                  <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1m4 0h1m-6 4h1m4 0h1m-6-8h6a2 2 0 012 2v8a2 2 0 01-2 2H9a2 2 0 01-2-2v-8a2 2 0 012-2z" />
-                  </svg>
-                  調査を開始する
-                </button>
-              ) : (survey.status === 'closed' || survey.status === 'archived') ? (
-                <Link
-                  to={`/results/${survey.id}`}
-                  className="px-6 py-3 border border-blue-600 text-blue-600 font-medium rounded-lg hover:bg-blue-50 transition-colors flex items-center justify-center"
-                >
-                  <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                  </svg>
-                  結果を確認する
-                </Link>
-              ) : (
-                <button
-                  disabled
-                  className="px-6 py-3 border border-gray-300 text-gray-400 font-medium rounded-lg bg-gray-100 cursor-not-allowed flex items-center justify-center"
-                >
-                  近日公開予定
-                </button>
-              )}
+            <div className="grid md:grid-cols-2 gap-8 mb-8">
+              <div>
+                <h3 className="text-md font-semibold text-gray-900 mb-3">調査詳細</h3>
+                <dl className="space-y-2">
+                  <div className="flex justify-between">
+                    <dt className="text-gray-600">実施期間:</dt>
+                    <dd className="text-gray-900">
+                      {survey?.startDate && new Date(survey.startDate).toLocaleDateString('ja-JP')} 
+                      {survey?.endDate && ` - ${new Date(survey.endDate).toLocaleDateString('ja-JP')}`}
+                    </dd>
+                  </div>
+                  <div className="flex justify-between">
+                    <dt className="text-gray-600">作成日:</dt>
+                    <dd className="text-gray-900">
+                      {survey?.createdAt && new Date(survey.createdAt).toLocaleDateString('ja-JP')}
+                    </dd>
+                  </div>
+                </dl>
+              </div>
 
-              <Link
-                to="/surveys"
-                className="px-6 py-3 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors flex items-center justify-center"
-              >
-                調査一覧に戻る
-              </Link>
+              <div>
+                <h3 className="text-md font-semibold text-gray-900 mb-3">参加状況</h3>
+                {sessionId && (
+                  <div className="bg-blue-50 border border-blue-200 rounded p-3">
+                    <p className="text-blue-700 text-sm">
+                      匿名セッション: {sessionId.substring(0, 16)}...
+                    </p>
+                  </div>
+                )}
+              </div>
             </div>
 
-            {/* Additional Information */}
-            <div className="mt-8 pt-6 border-t border-gray-200">
-              <div className="text-sm text-gray-500 space-y-1">
-                <p>作成日: {formatDateTime(survey.created_at)}</p>
-                <p>最終更新: {formatDateTime(survey.updated_at)}</p>
+            <div className="border-t pt-6">
+              <div className="flex flex-col sm:flex-row gap-4">
+                <button
+                  onClick={handleStartSurvey}
+                  disabled={survey?.status !== 'active'}
+                  className="flex-1 bg-blue-600 text-white py-3 px-6 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
+                >
+                  {survey?.status === 'active' ? '調査を開始する' : '調査は現在停止中です'}
+                </button>
+                
+                <button
+                  onClick={() => navigate('/surveys')}
+                  className="flex-1 sm:flex-none bg-gray-200 text-gray-700 py-3 px-6 rounded-lg hover:bg-gray-300 transition-colors font-medium"
+                >
+                  キャンセル
+                </button>
               </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
+    </EmployeeLayout>
   );
 }

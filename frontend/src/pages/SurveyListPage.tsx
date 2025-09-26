@@ -4,6 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { SurveyService } from '@/api/services';
 import { Survey } from '@/types/survey';
 import { SurveyCard } from '@/components/SurveyCard';
+import { EmployeeLayout } from '@/components/common';
 
 export function SurveyListPage(): JSX.Element {
   const { sessionId } = useAuth();
@@ -41,7 +42,7 @@ export function SurveyListPage(): JSX.Element {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <EmployeeLayout>
         <div className="container mx-auto py-12 px-4">
           <h1 className="text-4xl font-bold text-gray-900 mb-8">
             利用可能な調査
@@ -50,13 +51,13 @@ export function SurveyListPage(): JSX.Element {
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
           </div>
         </div>
-      </div>
+      </EmployeeLayout>
     );
   }
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <EmployeeLayout>
         <div className="container mx-auto py-12 px-4">
           <h1 className="text-4xl font-bold text-gray-900 mb-8">
             利用可能な調査
@@ -85,12 +86,12 @@ export function SurveyListPage(): JSX.Element {
             </div>
           </div>
         </div>
-      </div>
+      </EmployeeLayout>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <EmployeeLayout>
       <div className="container mx-auto py-12 px-4">
         <h1 className="text-4xl font-bold text-gray-900 mb-8">
           利用可能な調査
@@ -158,6 +159,6 @@ export function SurveyListPage(): JSX.Element {
           </>
         )}
       </div>
-    </div>
+    </EmployeeLayout>
   );
 }
