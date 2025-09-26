@@ -1,4 +1,5 @@
 import { FastifyInstance, FastifyPluginAsync } from 'fastify';
+import type { FastifyInstance, FastifyPluginAsync } from 'fastify';
 import { SurveyService } from '../services/survey.service';
 import {
   CreateSurveySchema,
@@ -188,6 +189,57 @@ export const surveysRoutes: FastifyPluginAsync = async (fastify: FastifyInstance
 
         await surveyService.deleteSurvey(id);
         return reply.code(204).send();
+      } catch (error) {
+        fastify.log.error(error);
+        return reply.code(500).send({
+          error: {
+            code: 'INTERNAL_SERVER_ERROR',
+            message: 'Internal server error',
+          },
+        });
+      }
+    },
+  );
+
+  // Get questions for a specific survey
+  fastify.get(
+    '/surveys/:id/questions',
+    {
+      schema: {
+        params: {
+          type: 'object',
+          properties: {
+            id: { type: 'number' }
+          }
+        },
+        response: {
+          200: {
+            type: 'object',
+            properties: {
+              data: { type: 'array' }
+            }
+          }
+        }
+      },
+      preHandler: [validateParams(ParamsSchema)]
+    },
+    async (request, reply) => {
+      try {
+        const { id } = request.params as { id: number };
+
+        // Check if survey exists
+        const surveyExists = await surveyService.surveyExists(id);
+        if (!surveyExists) {
+          return reply.code(404).send({
+            error: {
+              code: 'NOT_FOUND',
+              message: `Survey with id ${id} not found`,
+            },
+          });
+        }
+
+        const questions = await surveyService.getSurveyQuestions(id);
+        return reply.code(200).send({ data: questions });
       } catch (error) {
         fastify.log.error(error);
         return reply.code(500).send({
