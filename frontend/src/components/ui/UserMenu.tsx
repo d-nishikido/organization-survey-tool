@@ -1,7 +1,7 @@
-import React, { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { Button } from './Button';
+import Button from './Button';
 import { clsx } from 'clsx';
 
 interface UserMenuProps {
@@ -13,7 +13,7 @@ export function UserMenu({ className }: UserMenuProps): JSX.Element {
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
-  const buttonRef = useRef<HTMLButtonElement>(null);
+  const buttonWrapperRef = useRef<HTMLDivElement>(null);
 
   // Close menu when clicking outside
   useEffect(() => {
@@ -21,8 +21,8 @@ export function UserMenu({ className }: UserMenuProps): JSX.Element {
       if (
         menuRef.current &&
         !menuRef.current.contains(event.target as Node) &&
-        buttonRef.current &&
-        !buttonRef.current.contains(event.target as Node)
+        buttonWrapperRef.current &&
+        !buttonWrapperRef.current.contains(event.target as Node)
       ) {
         setIsOpen(false);
       }
@@ -69,16 +69,16 @@ export function UserMenu({ className }: UserMenuProps): JSX.Element {
   return (
     <div className={clsx('relative', className)}>
       {/* User Menu Button */}
-      <Button
-        ref={buttonRef}
-        variant="ghost"
-        size="sm"
-        className="flex items-center space-x-2 p-2"
-        onClick={handleToggle}
-        aria-expanded={isOpen}
-        aria-haspopup="true"
-        aria-label="ユーザーメニュー"
-      >
+      <div ref={buttonWrapperRef}>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="flex items-center space-x-2 p-2"
+          onClick={handleToggle}
+          aria-expanded={isOpen}
+          aria-haspopup="true"
+          aria-label="ユーザーメニュー"
+        >
         <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
           <span className="text-white text-sm font-medium">
             {user?.name ? user.name.charAt(0).toUpperCase() : '管'}
@@ -109,6 +109,7 @@ export function UserMenu({ className }: UserMenuProps): JSX.Element {
           />
         </svg>
       </Button>
+      </div>
 
       {/* Dropdown Menu */}
       {isOpen && (
