@@ -6,31 +6,31 @@ import { defineConfig, devices } from '@playwright/test';
  */
 export default defineConfig({
   testDir: './tests/e2e',
-  
+
   // Pre-commit時は並行実行で高速化
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
-  
+
   // 失敗時は即座に中断（コミット時間短縮）
   retries: 0,
   workers: 2, // 2つのワーカーで並行実行
   maxFailures: 3, // 3つ失敗したら即座に停止
-  
+
   // レポート設定（Pre-commit時は最小限）
   reporter: [
     ['list'], // コンソール出力のみ
     ['html', { open: 'never' }] // HTMLレポートは生成するが自動で開かない
   ],
-  
+
   use: {
     // ベースURL
     baseURL: 'http://localhost:5173',
-    
+
     // Pre-commit時は高速化のため最小限の設定
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
-    
+
     // タイムアウト設定
     actionTimeout: 10000,
     navigationTimeout: 30000,
@@ -40,7 +40,7 @@ export default defineConfig({
   projects: [
     {
       name: 'chromium-desktop',
-      use: { 
+      use: {
         ...devices['Desktop Chrome'],
         // ヘッドレスモードで高速実行
         headless: true,
@@ -65,7 +65,7 @@ export default defineConfig({
 
   // グローバル設定
   globalTimeout: 5 * 60 * 1000, // 5分でグローバルタイムアウト
-  
+
   // テストファイルの検索パターン
   testMatch: [
     '**/smoke.spec.ts', // Pre-commit時はSmokeテストのみ

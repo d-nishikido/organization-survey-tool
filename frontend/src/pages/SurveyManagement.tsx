@@ -1,9 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useMemo, memo } from 'react';
 import { Link } from 'react-router-dom';
 import { AdminLayout } from '../components/admin';
 import { Card, Button, Input, Loading, Alert } from '../components/ui';
 import type { SurveyResponse } from '../types/survey';
-import AdminService from '../api/services/adminService';
+import { SurveyService } from '../api/services/surveyService';
 
 const STATUS_COLORS = {
   draft: 'bg-gray-100 text-gray-800',
@@ -19,6 +19,247 @@ const STATUS_LABELS = {
   archived: 'アーカイブ',
 } as const;
 
+// Memoized search filters component
+const SearchFilters = memo(({ 
+  searchTerm, 
+  statusFilter, 
+  onSearchChange, 
+  onStatusChange, 
+  onClearFilters 
+}: {
+  searchTerm: string;
+  statusFilter: string;
+  onSearchChange: (value: string) => void;
+  onStatusChange: (status: string) => void;
+  onClearFilters: () => void;
+}) => {
+  return (
+    <Card variant="default" padding="md">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            検索
+          </label>
+          <Input
+            type="text"
+            placeholder="調査名で検索..."
+            value={searchTerm}
+            onChange={(e) => onSearchChange(e.target.value)}
+          />
+        </div>
+        
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            ステータス
+          </label>
+          <select
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            value={statusFilter}
+            onChange={(e) => onStatusChange(e.target.value)}
+          >
+            <option value="">すべて</option>
+            <option value="draft">下書き</option>
+            <option value="active">アクティブ</option>
+            <option value="closed">終了</option>
+            <option value="archived">アーカイブ</option>
+          </select>
+        </div>
+
+        <div className="flex items-end">
+          <Button
+            variant="secondary"
+            size="md"
+            onClick={onClearFilters}
+          >
+            フィルタをクリア
+          </Button>
+        </div>
+      </div>
+    </Card>
+  );
+});
+
+SearchFilters.displayName = 'SearchFilters';
+
+// Memoized survey list component
+const SurveysList = memo(({ 
+  surveys, 
+  loading, 
+  formatDate, 
+  getResponseRate 
+}: {
+  surveys: SurveyResponse[];
+  loading: boolean;
+  formatDate: (dateString: string) => string;
+  getResponseRate: (survey: SurveyResponse) => string;
+}) => {
+  if (surveys.length === 0 && !loading) {
+    return (
+      <Card variant="default" padding="lg">
+        <div className="text-center py-12">
+          <div className="text-6xl mb-4">📝</div>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">
+            調査がありません
+          </h3>
+          <p className="text-gray-600 mb-6">
+            新しい調査を作成して、組織のエンゲージメントを測定しましょう。
+          </p>
+          <Link to="/admin/surveys/new">
+            <Button variant="primary" size="md">
+              最初の調査を作成
+            </Button>
+          </Link>
+        </div>
+      </Card>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      {surveys.map((survey) => (
+        <SurveyCard
+          key={survey.id}
+          survey={survey}
+          formatDate={formatDate}
+          getResponseRate={getResponseRate}
+        />
+      ))}
+    </div>
+  );
+});
+
+SurveysList.displayName = 'SurveysList';
+
+// Memoized individual survey card
+const SurveyCard = memo(({ 
+  survey, 
+  formatDate, 
+  getResponseRate 
+}: {
+  survey: SurveyResponse;
+  formatDate: (dateString: string) => string;
+  getResponseRate: (survey: SurveyResponse) => string;
+}) => {
+  return (
+    <Card variant="default" padding="md">
+      <div className="flex items-center justify-between">
+        <div className="flex-1">
+          <div className="flex items-center space-x-3">
+            <h3 className="text-lg font-medium text-gray-900">
+              {survey.title}
+            </h3>
+            <span
+              className={`px-2 py-1 text-xs font-medium rounded-full ${
+                STATUS_COLORS[survey.status]
+              }`}
+            >
+              {STATUS_LABELS[survey.status]}
+            </span>
+          </div>
+          
+          {survey.description && (
+            <p className="mt-1 text-sm text-gray-600">
+              {survey.description}
+            </p>
+          )}
+          
+          <div className="mt-2 flex items-center space-x-6 text-sm text-gray-500">
+            <span>
+              期間: {formatDate(survey.start_date)} - {formatDate(survey.end_date)}
+            </span>
+            <span>
+              回答数: {survey.response_count || 0}件
+            </span>
+            <span>
+              回答率: {getResponseRate(survey)}%
+            </span>
+            <span>
+              匿名: {survey.is_anonymous ? 'あり' : 'なし'}
+            </span>
+          </div>
+        </div>
+
+        <div className="flex items-center space-x-2 ml-4">
+          <Link to={`/admin/surveys/${survey.id}/preview`}>
+            <Button variant="secondary" size="sm">
+              プレビュー
+            </Button>
+          </Link>
+
+          {survey.status === 'draft' && (
+            <Link to={`/admin/surveys/${survey.id}/edit`}>
+              <Button variant="secondary" size="sm">
+                編集
+              </Button>
+            </Link>
+          )}
+
+          <Link to={`/admin/surveys/${survey.id}/operations`}>
+            <Button variant="warning" size="sm">
+              運用管理
+            </Button>
+          </Link>
+
+          <Link to={`/admin/analytics?survey=${survey.id}`}>
+            <Button variant="primary" size="sm">
+              結果分析
+            </Button>
+          </Link>
+        </div>
+      </div>
+    </Card>
+  );
+});
+
+SurveyCard.displayName = 'SurveyCard';
+
+// Memoized pagination component
+const Pagination = memo(({ 
+  currentPage, 
+  totalPages, 
+  isFirstPage, 
+  isLastPage, 
+  onPreviousPage, 
+  onNextPage 
+}: {
+  currentPage: number;
+  totalPages: number;
+  isFirstPage: boolean;
+  isLastPage: boolean;
+  onPreviousPage: () => void;
+  onNextPage: () => void;
+}) => {
+  return (
+    <div className="flex justify-center">
+      <div className="flex items-center space-x-2">
+        <Button
+          variant="secondary"
+          size="sm"
+          disabled={isFirstPage}
+          onClick={onPreviousPage}
+        >
+          前へ
+        </Button>
+        
+        <span className="px-4 py-2 text-sm text-gray-700">
+          {currentPage} / {totalPages}
+        </span>
+        
+        <Button
+          variant="secondary"
+          size="sm"
+          disabled={isLastPage}
+          onClick={onNextPage}
+        >
+          次へ
+        </Button>
+      </div>
+    </div>
+  );
+});
+
+Pagination.displayName = 'Pagination';
+
 export function SurveyManagement(): JSX.Element {
   const [surveys, setSurveys] = useState<SurveyResponse[]>([]);
   const [totalCount, setTotalCount] = useState(0);
@@ -29,103 +270,96 @@ export function SurveyManagement(): JSX.Element {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchSurveys = async () => {
+  // Debounced search term to avoid excessive API calls
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
+
+  // Debounce search input
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+    }, 300); // Wait 300ms after user stops typing
+
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
+  const fetchSurveys = useCallback(async () => {
     setLoading(true);
     setError(null);
     
     try {
-      // Mock implementation - replace with actual API call
-      await new Promise(resolve => setTimeout(resolve, 500));
+      // Fetch real data from API
+      const params: any = {
+        page: currentPage,
+        pageSize: 10,
+      };
       
-      // Mock data with various statuses
-      const allMockSurveys: SurveyResponse[] = [
-        {
-          id: 1,
-          title: "2024年度エンゲージメント調査",
-          description: "従業員のエンゲージメント向上を目的とした調査です",
-          status: "active",
-          start_date: "2024-01-01T00:00:00Z",
-          end_date: "2024-12-31T23:59:59Z",
-          is_anonymous: true,
-          created_at: "2024-01-01T00:00:00Z",
-          updated_at: "2024-01-01T00:00:00Z",
-          response_count: 245
-        },
-        {
-          id: 2,
-          title: "Q4組織改善調査（下書き）",
-          description: "第4四半期の組織改善に向けた調査案",
-          status: "draft",
-          start_date: "2024-10-01T00:00:00Z",
-          end_date: "2024-10-31T23:59:59Z",
-          is_anonymous: true,
-          created_at: "2024-09-20T00:00:00Z",
-          updated_at: "2024-09-20T00:00:00Z",
-          response_count: 0
-        },
-        {
-          id: 3,
-          title: "満足度調査（終了）",
-          description: "前四半期の満足度調査",
-          status: "closed",
-          start_date: "2024-07-01T00:00:00Z",
-          end_date: "2024-07-31T23:59:59Z",
-          is_anonymous: true,
-          created_at: "2024-06-30T00:00:00Z",
-          updated_at: "2024-08-01T00:00:00Z",
-          response_count: 180
-        }
-      ];
-      
-      // Apply filters
-      let filteredSurveys = allMockSurveys;
-      
-      // Status filter
       if (statusFilter) {
-        filteredSurveys = filteredSurveys.filter(survey => survey.status === statusFilter);
+        params.status = statusFilter;
       }
       
-      // Search filter
-      if (searchTerm) {
-        filteredSurveys = filteredSurveys.filter(survey =>
-          survey.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          (survey.description && survey.description.toLowerCase().includes(searchTerm.toLowerCase()))
-        );
+      if (debouncedSearchTerm) {
+        params.search = debouncedSearchTerm;
       }
       
-      setSurveys(filteredSurveys);
-      setTotalCount(filteredSurveys.length);
+      const response = await SurveyService.getSurveys(params);
+      
+      setSurveys(response.data);
+      setTotalCount(response.total);
     } catch (err) {
       setError('調査の取得に失敗しました');
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentPage, debouncedSearchTerm, statusFilter]); // Only depend on debounced search term
 
   useEffect(() => {
     fetchSurveys();
-  }, [currentPage, searchTerm, statusFilter]);
+  }, [fetchSurveys]);
 
-  const handleSearch = (value: string) => {
+  // Memoized event handlers to prevent unnecessary re-renders
+  const handleSearch = useCallback((value: string) => {
     setSearchTerm(value);
     setCurrentPage(1);
-  };
+  }, []);
 
-  const handleStatusFilter = (status: string) => {
+  const handleStatusFilter = useCallback((status: string) => {
     setStatusFilter(status);
     setCurrentPage(1);
-  };
+  }, []);
 
-  const formatDate = (dateString: string) => {
+  const handleClearFilters = useCallback(() => {
+    setSearchTerm('');
+    setStatusFilter('');
+    setCurrentPage(1);
+  }, []);
+
+  const handlePreviousPage = useCallback(() => {
+    setCurrentPage(currentPage - 1);
+  }, [currentPage]);
+
+  const handleNextPage = useCallback(() => {
+    setCurrentPage(currentPage + 1);
+  }, [currentPage]);
+
+  // Memoized computed values
+  const formatDate = useCallback((dateString: string) => {
     return new Date(dateString).toLocaleDateString('ja-JP');
-  };
+  }, []);
 
-  const getResponseRate = (survey: SurveyResponse) => {
+  const getResponseRate = useCallback((survey: SurveyResponse) => {
     // 仮の計算 - 実際の従業員数は別途取得が必要
     const estimatedEmployees = 1000;
     const responseCount = survey.response_count || 0;
     return ((responseCount / estimatedEmployees) * 100).toFixed(1);
-  };
+  }, []);
+
+  // Memoized pagination info
+  const paginationInfo = useMemo(() => ({
+    totalPages: Math.ceil(totalCount / 10),
+    showPagination: totalCount > 10,
+    isFirstPage: currentPage === 1,
+    isLastPage: currentPage >= Math.ceil(totalCount / 10),
+  }), [totalCount, currentPage]);
 
   if (loading && surveys.length === 0) {
     return (
@@ -155,53 +389,14 @@ export function SurveyManagement(): JSX.Element {
           </Link>
         </div>
 
-        {/* Filters */}
-        <Card variant="default" padding="md">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                検索
-              </label>
-              <Input
-                type="text"
-                placeholder="調査名で検索..."
-                value={searchTerm}
-                onChange={(e) => handleSearch(e.target.value)}
-              />
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                ステータス
-              </label>
-              <select
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                value={statusFilter}
-                onChange={(e) => handleStatusFilter(e.target.value)}
-              >
-                <option value="">すべて</option>
-                <option value="draft">下書き</option>
-                <option value="active">アクティブ</option>
-                <option value="closed">終了</option>
-                <option value="archived">アーカイブ</option>
-              </select>
-            </div>
-
-            <div className="flex items-end">
-              <Button
-                variant="secondary"
-                size="md"
-                onClick={() => {
-                  setSearchTerm('');
-                  setStatusFilter('');
-                  setCurrentPage(1);
-                }}
-              >
-                フィルタをクリア
-              </Button>
-            </div>
-          </div>
-        </Card>
+        {/* Filters - Memoized component */}
+        <SearchFilters
+          searchTerm={searchTerm}
+          statusFilter={statusFilter}
+          onSearchChange={handleSearch}
+          onStatusChange={handleStatusFilter}
+          onClearFilters={handleClearFilters}
+        />
 
         {/* Error Display */}
         {error && (
@@ -210,126 +405,24 @@ export function SurveyManagement(): JSX.Element {
           </Alert>
         )}
 
-        {/* Surveys List */}
-        <div className="space-y-4">
-          {surveys.map((survey) => (
-            <Card key={survey.id} variant="default" padding="md">
-              <div className="flex items-center justify-between">
-                <div className="flex-1">
-                  <div className="flex items-center space-x-3">
-                    <h3 className="text-lg font-medium text-gray-900">
-                      {survey.title}
-                    </h3>
-                    <span
-                      className={`px-2 py-1 text-xs font-medium rounded-full ${
-                        STATUS_COLORS[survey.status]
-                      }`}
-                    >
-                      {STATUS_LABELS[survey.status]}
-                    </span>
-                  </div>
-                  
-                  {survey.description && (
-                    <p className="mt-1 text-sm text-gray-600">
-                      {survey.description}
-                    </p>
-                  )}
-                  
-                  <div className="mt-2 flex items-center space-x-6 text-sm text-gray-500">
-                    <span>
-                      期間: {formatDate(survey.start_date)} - {formatDate(survey.end_date)}
-                    </span>
-                    <span>
-                      回答数: {survey.response_count || 0}件
-                    </span>
-                    <span>
-                      回答率: {getResponseRate(survey)}%
-                    </span>
-                    <span>
-                      匿名: {survey.is_anonymous ? 'あり' : 'なし'}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="flex items-center space-x-2 ml-4">
-                  <Link to={`/admin/surveys/${survey.id}/preview`}>
-                    <Button variant="secondary" size="sm">
-                      プレビュー
-                    </Button>
-                  </Link>
-
-                  {survey.status === 'draft' && (
-                    <Link to={`/admin/surveys/${survey.id}/edit`}>
-                      <Button variant="secondary" size="sm">
-                        編集
-                      </Button>
-                    </Link>
-                  )}
-
-                  <Link to={`/admin/surveys/${survey.id}/operations`}>
-                    <Button variant="warning" size="sm">
-                      運用管理
-                    </Button>
-                  </Link>
-
-                  <Link to={`/admin/analytics?survey=${survey.id}`}>
-                    <Button variant="primary" size="sm">
-                      結果分析
-                    </Button>
-                  </Link>
-                </div>
-              </div>
-            </Card>
-          ))}
-        </div>
-
-        {/* Empty State */}
-        {surveys.length === 0 && !loading && (
-          <Card variant="default" padding="lg">
-            <div className="text-center py-12">
-              <div className="text-6xl mb-4">📝</div>
-              <h3 className="text-lg font-medium text-gray-900 mb-2">
-                調査がありません
-              </h3>
-              <p className="text-gray-600 mb-6">
-                新しい調査を作成して、組織のエンゲージメントを測定しましょう。
-              </p>
-              <Link to="/admin/surveys/new">
-                <Button variant="primary" size="md">
-                  最初の調査を作成
-                </Button>
-              </Link>
-            </div>
-          </Card>
-        )}
+        {/* Surveys List - Memoized component */}
+        <SurveysList
+          surveys={surveys}
+          loading={loading}
+          formatDate={formatDate}
+          getResponseRate={getResponseRate}
+        />
 
         {/* Pagination */}
-        {totalCount > 10 && (
-          <div className="flex justify-center">
-            <div className="flex items-center space-x-2">
-              <Button
-                variant="secondary"
-                size="sm"
-                disabled={currentPage === 1}
-                onClick={() => setCurrentPage(currentPage - 1)}
-              >
-                前へ
-              </Button>
-              
-              <span className="px-4 py-2 text-sm text-gray-700">
-                {currentPage} / {Math.ceil(totalCount / 10)}
-              </span>
-              
-              <Button
-                variant="secondary"
-                size="sm"
-                disabled={currentPage >= Math.ceil(totalCount / 10)}
-                onClick={() => setCurrentPage(currentPage + 1)}
-              >
-                次へ
-              </Button>
-            </div>
-          </div>
+        {paginationInfo.showPagination && (
+          <Pagination
+            currentPage={currentPage}
+            totalPages={paginationInfo.totalPages}
+            isFirstPage={paginationInfo.isFirstPage}
+            isLastPage={paginationInfo.isLastPage}
+            onPreviousPage={handlePreviousPage}
+            onNextPage={handleNextPage}
+          />
         )}
       </div>
     </AdminLayout>

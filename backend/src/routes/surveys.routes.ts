@@ -55,7 +55,8 @@ export const surveysRoutes: FastifyPluginAsync = async (fastify: FastifyInstance
           });
         }
 
-        return reply.code(200).send(survey);
+        // Fix: Wrap response in 'data' property for consistency with frontend expectations
+        return reply.code(200).send({ data: survey });
       } catch (error) {
         fastify.log.error(error);
         return reply.code(500).send({
@@ -71,6 +72,9 @@ export const surveysRoutes: FastifyPluginAsync = async (fastify: FastifyInstance
   // Create survey (Admin only)
   fastify.post(
     '/surveys',
+    {
+      preHandler: [validateBody(CreateSurveySchema)],
+    },
     async (request, reply) => {
       try {
         const surveyData = request.body as z.infer<typeof CreateSurveySchema>;
@@ -89,7 +93,8 @@ export const surveysRoutes: FastifyPluginAsync = async (fastify: FastifyInstance
         }
 
         const survey = await surveyService.createSurvey(surveyData);
-        return reply.code(201).send(survey);
+        // Fix: Wrap response in 'data' property for consistency
+        return reply.code(201).send({ data: survey });
       } catch (error) {
         fastify.log.error(error);
         return reply.code(500).send({
@@ -105,6 +110,9 @@ export const surveysRoutes: FastifyPluginAsync = async (fastify: FastifyInstance
   // Update survey (Admin only)
   fastify.put(
     '/surveys/:id',
+    {
+      preHandler: [validateParams(ParamsSchema), validateBody(UpdateSurveySchema)],
+    },
     async (request, reply) => {
       try {
         const { id } = request.params as { id: number };
@@ -136,7 +144,8 @@ export const surveysRoutes: FastifyPluginAsync = async (fastify: FastifyInstance
           });
         }
 
-        return reply.code(200).send(survey);
+        // Fix: Wrap response in 'data' property for consistency
+        return reply.code(200).send({ data: survey });
       } catch (error) {
         fastify.log.error(error);
         return reply.code(500).send({

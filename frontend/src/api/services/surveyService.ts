@@ -1,5 +1,4 @@
 import apiClient from '../client';
-import apiClient from '../client';
 import { ApiResponse, PaginatedResponse } from '../types';
 import { Survey, Question, SurveyResponse, CreateSurveyDto } from '@/types/survey';
 
@@ -22,6 +21,13 @@ export class SurveyService {
    */
   static async createSurvey(surveyData: CreateSurveyDto): Promise<ApiResponse<Survey>> {
     return apiClient.post<ApiResponse<Survey>>(this.BASE_PATH, surveyData);
+  }
+
+  /**
+   * Update an existing survey
+   */
+  static async updateSurvey(surveyId: string, surveyData: Partial<CreateSurveyDto>): Promise<ApiResponse<Survey>> {
+    return apiClient.put<ApiResponse<Survey>>(`${this.BASE_PATH}/${surveyId}`, surveyData);
   }
 
   /**
