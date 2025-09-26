@@ -86,12 +86,14 @@ const SurveysList = memo(({
   surveys, 
   loading, 
   formatDate, 
-  getResponseRate 
+  getResponseRate,
+  onDelete
 }: {
   surveys: SurveyResponse[];
   loading: boolean;
   formatDate: (dateString: string) => string;
   getResponseRate: (survey: SurveyResponse) => string;
+  onDelete: (surveyId: number) => Promise<void>;
 }) => {
   if (surveys.length === 0 && !loading) {
     return (
@@ -122,6 +124,7 @@ const SurveysList = memo(({
           survey={survey}
           formatDate={formatDate}
           getResponseRate={getResponseRate}
+          onDelete={onDelete}
         />
       ))}
     </div>
@@ -134,11 +137,13 @@ SurveysList.displayName = 'SurveysList';
 const SurveyCard = memo(({ 
   survey, 
   formatDate, 
-  getResponseRate 
+  getResponseRate,
+  onDelete
 }: {
   survey: SurveyResponse;
   formatDate: (dateString: string) => string;
   getResponseRate: (survey: SurveyResponse) => string;
+  onDelete: (surveyId: number) => Promise<void>;
 }) => {
   return (
     <Card variant="default" padding="md">
@@ -187,11 +192,20 @@ const SurveyCard = memo(({
           </Link>
 
           {survey.status === 'draft' && (
-            <Link to={`/admin/surveys/${survey.id}/edit`}>
-              <Button variant="secondary" size="sm">
-                編集
+            <>
+              <Link to={`/admin/surveys/${survey.id}/edit`}>
+                <Button variant="secondary" size="sm">
+                  編集
+                </Button>
+              </Link>
+              <Button 
+                variant="danger" 
+                size="sm"
+                onClick={() => onDelete(survey.id)}
+              >
+                削除
               </Button>
-            </Link>
+            </>
           )}
 
           <Link to={`/admin/surveys/${survey.id}/operations`}>
@@ -341,6 +355,29 @@ export function SurveyManagement(): JSX.Element {
     setCurrentPage(currentPage + 1);
   }, [currentPage]);
 
+  const handleDeleteSurvey = useCallback(async (surveyId: number) => {
+    if (!confirm('この調査を削除しますか？この操作は取り消せません。')) {
+      return;
+    }
+
+    try {
+      setLoading(true);
+      await SurveyService.deleteSurvey(surveyId.toString());
+      
+      // Refresh the surveys list
+      await fetchSurveys();
+      
+      // Show success message (could be replaced with a toast notification)
+      alert('調査が正常に削除されました。');
+    } catch (err: any) {
+      // Handle error
+      const errorMessage = err?.response?.data?.error?.message || '調査の削除に失敗しました';
+      alert(errorMessage);
+    } finally {
+      setLoading(false);
+    }
+  }, [fetchSurveys]);
+
   // Memoized computed values
   const formatDate = useCallback((dateString: string) => {
     return new Date(dateString).toLocaleDateString('ja-JP');
@@ -411,6 +448,7 @@ export function SurveyManagement(): JSX.Element {
           loading={loading}
           formatDate={formatDate}
           getResponseRate={getResponseRate}
+          onDelete={handleDeleteSurvey}
         />
 
         {/* Pagination */}
