@@ -287,4 +287,64 @@ export class SurveyService {
     const result = await db.queryOne(query, [id]);
     return !!result;
   }
+
+  /**
+   * Assign question to survey
+   */
+  async assignQuestionToSurvey(surveyId: number, questionId: number, orderIndex?: number): Promise<void> {
+    // Get the next order index if not provided
+    let finalOrderIndex = orderIndex;
+    if (finalOrderIndex === undefined) {
+      const maxOrderQuery = 'SELECT COALESCE(MAX(order_index), 0) as max_order FROM survey_questions WHERE survey_id = $1';
+      const result = await db.queryOne<{ max_order: number }>(maxOrderQuery, [surveyId]);
+      finalOrderIndex = (result?.max_order || 0) + 1;
+    }
+
+    const query = `
+      INSERT INTO survey_questions (survey_id, question_id, order_index)
+      VALUES ($1, $2, $3)
+      ON CONFLICT (survey_id, question_id) 
+      DO UPDATE SET order_index = $3
+    `;
+
+    await db.query(query, [surveyId, questionId, finalOrderIndex]);
+    logger.info('Question assigned to survey', { surveyId, questionId, orderIndex: finalOrderIndex });
+  }
+
+  /**
+   * Update question order in survey
+   */
+  async updateQuestionOrder(surveyId: number, questions: { question_id: number; order_index: number }[]): Promise<void> {
+    const client = await db.getClient();
+    
+    try {
+      await client.query('BEGIN');
+      
+      for (const q of questions) {
+        const query = `
+          UPDATE survey_questions 
+          SET order_index = $1 
+          WHERE survey_id = $2 AND question_id = $3
+        `;
+        await client.query(query, [q.order_index, surveyId, q.question_id]);
+      }
+      
+      await client.query('COMMIT');
+      logger.info('Question order updated', { surveyId, questionsCount: questions.length });
+    } catch (error) {
+      await client.query('ROLLBACK');
+      throw error;
+    } finally {
+      client.release();
+    }
+  }
+
+  /**
+   * Remove question from survey
+   */
+  async removeQuestionFromSurvey(surveyId: number, questionId: number): Promise<void> {
+    const query = 'DELETE FROM survey_questions WHERE survey_id = $1 AND question_id = $2';
+    await db.query(query, [surveyId, questionId]);
+    logger.info('Question removed from survey', { surveyId, questionId });
+  }
 }

@@ -22,6 +22,12 @@ const navigation: NavigationItem[] = [
     description: '調査の作成・編集'
   },
   {
+    name: '質問管理',
+    href: '/admin/questions',
+    icon: '❓',
+    description: '質問の作成・編集・管理'
+  },
+  {
     name: '結果分析',
     href: '/admin/analytics',
     icon: '📈',

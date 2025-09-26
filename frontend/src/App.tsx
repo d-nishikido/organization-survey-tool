@@ -15,6 +15,8 @@ import { SurveyOperations } from './pages/SurveyOperations';
 import { SurveyForm } from './components/admin/SurveyForm';
 import { SurveyPreview } from './components/admin/SurveyPreview';
 import { AnalyticsDashboard } from './components/analytics';
+import { QuestionManagement } from './pages/QuestionManagement';
+import { SurveyQuestionAssignment } from './pages/SurveyQuestionAssignment';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -110,6 +112,22 @@ export function App(): JSX.Element {
                 element={
                   <HRRoute>
                     <AnalyticsDashboard />
+                  </HRRoute>
+                }
+              />
+              <Route
+                path="/admin/questions"
+                element={
+                  <HRRoute>
+                    <QuestionManagement />
+                  </HRRoute>
+                }
+              />
+              <Route
+                path="/admin/surveys/:surveyId/questions"
+                element={
+                  <HRRoute>
+                    <SurveyQuestionAssignment />
                   </HRRoute>
                 }
               />
