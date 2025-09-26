@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { SurveyService } from '@/api/services';
+import { operationService } from '@/api/services';
 import { Survey } from '@/types/survey';
 
 export function SurveyDetailPage(): JSX.Element {
@@ -81,9 +83,26 @@ export function SurveyDetailPage(): JSX.Element {
     });
   };
 
-  const handleStartSurvey = () => {
-    if (survey?.status === 'active') {
+  const handleStartSurvey = async () => {
+    if (!surveyId) return;
+    
+    try {
+      setLoading(true);
+      setError(null);
+      
+      // Start the survey through the operation service
+      await operationService.startSurvey(Number(surveyId));
+      
+      // Reload survey details to get updated status
+      await loadSurveyDetails();
+      
+      // Navigate to the survey page
       navigate(`/survey/${surveyId}`);
+    } catch (err: any) {
+      console.error('Failed to start survey:', err);
+      setError('調査の開始に失敗しました。再度お試しください。');
+    } finally {
+      setLoading(false);
     }
   };
 
