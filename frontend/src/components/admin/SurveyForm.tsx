@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { AdminLayout } from './AdminLayout';
 import { Card, Button, Input, Alert, Loading } from '../ui';
 import { FormField, ValidationMessage } from '../forms';
+import { SurveyService } from '../../api/services/surveyService';
 import type { CreateSurveyDto, SurveyResponse, SurveyStatus } from '../../types/survey';
 
 interface SurveyFormData {
@@ -51,29 +52,20 @@ export function SurveyForm(): JSX.Element {
 
   const loadSurvey = async () => {
     if (!id) return;
-    
+
     setLoadingData(true);
     try {
-      // Mock survey data for edit mode
-      const mockSurvey: SurveyResponse = {
-        id: parseInt(id),
-        title: "Sample Survey",
-        description: "Sample description",
-        start_date: "2024-01-01T00:00:00Z",
-        end_date: "2024-12-31T23:59:59Z",
-        is_anonymous: true,
-        status: "draft",
-        created_at: "2024-01-01T00:00:00Z",
-        updated_at: "2024-01-01T00:00:00Z"
-      };
-      
+      // Load actual survey data from API
+      const response = await SurveyService.getSurveyById(id);
+      const surveyData = response.data;
+
       setFormData({
-        title: mockSurvey.title,
-        description: mockSurvey.description || '',
-        start_date: mockSurvey.start_date.split('T')[0],
-        end_date: mockSurvey.end_date.split('T')[0],
-        is_anonymous: mockSurvey.is_anonymous,
-        status: mockSurvey.status,
+        title: surveyData.title,
+        description: surveyData.description || '',
+        start_date: surveyData.start_date.split('T')[0],
+        end_date: surveyData.end_date.split('T')[0],
+        is_anonymous: surveyData.is_anonymous,
+        status: surveyData.status,
       });
     } catch (err) {
       setError('調査データの読み込みに失敗しました');
@@ -102,12 +94,18 @@ export function SurveyForm(): JSX.Element {
     if (formData.start_date && formData.end_date) {
       const startDate = new Date(formData.start_date);
       const endDate = new Date(formData.end_date);
-      
+
       if (endDate <= startDate) {
         newErrors.end_date = '終了日は開始日より後の日付を選択してください';
       }
-      
-      if (startDate < new Date()) {
+
+      // 今日の日付を00:00:00にセット
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const inputDate = new Date(formData.start_date);
+      inputDate.setHours(0, 0, 0, 0);
+
+      if (inputDate < today) {
         newErrors.start_date = '開始日は今日以降の日付を選択してください';
       }
     }
@@ -119,7 +117,7 @@ export function SurveyForm(): JSX.Element {
   const handleInputChange = (field: keyof SurveyFormData, value: string | boolean) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     setIsDirty(true);
-    
+
     // Clear field error when user starts typing
     if (errors[field as keyof ValidationErrors]) {
       setErrors(prev => ({ ...prev, [field]: undefined }));
@@ -138,19 +136,24 @@ export function SurveyForm(): JSX.Element {
       const submitData: CreateSurveyDto = {
         title: formData.title.trim(),
         description: formData.description.trim() || undefined,
-        start_date: new Date(formData.start_date).toISOString(),
-        end_date: new Date(formData.end_date).toISOString(),
+        start_date: new Date(formData.start_date + 'T00:00:00.000Z').toISOString(),
+        end_date: new Date(formData.end_date + 'T23:59:59.999Z').toISOString(),
         is_anonymous: formData.is_anonymous,
         status: saveAsDraft ? 'draft' : formData.status,
       };
 
-      // Mock API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      console.log('Survey data:', submitData);
+      // Call appropriate API method based on mode
+      const response = isEdit && id
+        ? await SurveyService.updateSurvey(id, submitData)
+        : await SurveyService.createSurvey(submitData);
+
+      console.log('Survey saved:', response);
       navigate('/admin/surveys');
     } catch (err) {
-      setErrors({ general: '保存に失敗しました。再度お試しください。' });
+      // Fix: Set both error states to ensure error display works
+      const errorMessage = '保存に失敗しました。再度お試しください。';
+      setError(errorMessage);
+      setErrors({ general: errorMessage });
     } finally {
       setLoading(false);
     }
@@ -202,7 +205,7 @@ export function SurveyForm(): JSX.Element {
             {/* Basic Information */}
             <div>
               <h3 className="text-lg font-medium text-gray-900 mb-4">基本情報</h3>
-              
+
               <div className="space-y-4">
                 <FormField label="調査タイトル" isRequired>
                   <Input
@@ -230,7 +233,7 @@ export function SurveyForm(): JSX.Element {
             {/* Schedule */}
             <div>
               <h3 className="text-lg font-medium text-gray-900 mb-4">実施期間</h3>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField label="開始日" isRequired>
                   <Input
@@ -257,7 +260,7 @@ export function SurveyForm(): JSX.Element {
             {/* Settings */}
             <div>
               <h3 className="text-lg font-medium text-gray-900 mb-4">設定</h3>
-              
+
               <div className="space-y-4">
                 <div className="flex items-center">
                   <input
@@ -271,7 +274,7 @@ export function SurveyForm(): JSX.Element {
                     匿名回答を有効にする（推奨）
                   </label>
                 </div>
-                
+
                 <p className="text-sm text-gray-600">
                   匿名回答を有効にすると、回答者の個人情報は一切記録されません。
                   組織調査では匿名性の確保が重要です。
@@ -283,7 +286,7 @@ export function SurveyForm(): JSX.Element {
             {isEdit && (
               <div>
                 <h3 className="text-lg font-medium text-gray-900 mb-4">ステータス</h3>
-                
+
                 <div className="space-y-2">
                   <label className="flex items-center">
                     <input
@@ -296,7 +299,7 @@ export function SurveyForm(): JSX.Element {
                     />
                     <span className="ml-2 text-sm text-gray-900">下書き</span>
                   </label>
-                  
+
                   <label className="flex items-center">
                     <input
                       type="radio"
@@ -334,7 +337,7 @@ export function SurveyForm(): JSX.Element {
             >
               下書き保存
             </Button>
-            
+
             <Button
               variant="primary"
               size="md"
