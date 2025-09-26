@@ -315,28 +315,18 @@ export class SurveyService {
    * Update question order in survey
    */
   async updateQuestionOrder(surveyId: number, questions: { question_id: number; order_index: number }[]): Promise<void> {
-    const client = await db.getClient();
-    
-    try {
-      await client.query('BEGIN');
-      
+    await db.transaction(async (query) => {
       for (const q of questions) {
-        const query = `
-          UPDATE survey_questions 
-          SET order_index = $1 
+        const updateQuery = `
+          UPDATE survey_questions
+          SET order_index = $1
           WHERE survey_id = $2 AND question_id = $3
         `;
-        await client.query(query, [q.order_index, surveyId, q.question_id]);
+        await query(updateQuery, [q.order_index, surveyId, q.question_id]);
       }
-      
-      await client.query('COMMIT');
-      logger.info('Question order updated', { surveyId, questionsCount: questions.length });
-    } catch (error) {
-      await client.query('ROLLBACK');
-      throw error;
-    } finally {
-      client.release();
-    }
+    });
+
+    logger.info('Question order updated', { surveyId, questionsCount: questions.length });
   }
 
   /**

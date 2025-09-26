@@ -1,5 +1,4 @@
 import { FastifyInstance, FastifyPluginAsync } from 'fastify';
-import type { FastifyInstance, FastifyPluginAsync } from 'fastify';
 import { SurveyService } from '../services/survey.service';
 import {
   CreateSurveySchema,
