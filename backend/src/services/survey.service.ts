@@ -109,6 +109,32 @@ export class SurveyService {
   }
 
   /**
+   * Get all questions for a specific survey
+   */
+  /**
+   * Get all questions for a specific survey
+   */
+  async getSurveyQuestions(surveyId: number): Promise<any[]> {
+    const query = `
+      SELECT 
+        q.id,
+        q.question_text as text,
+        q.question_type as type,
+        q.category_id,
+        q.is_required,
+        q.options,
+        q.description,
+        sq.question_order as display_order
+      FROM questions q
+      INNER JOIN survey_questions sq ON q.id = sq.question_id
+      WHERE sq.survey_id = $1 AND sq.is_active = true
+      ORDER BY sq.question_order ASC
+    `;
+
+    return await db.query(query, [surveyId]);
+  }
+
+  /**
    * Create a new survey
    */
   async createSurvey(data: CreateSurveyDto): Promise<SurveyResponse> {
