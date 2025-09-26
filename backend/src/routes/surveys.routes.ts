@@ -158,19 +158,30 @@ export const surveysRoutes: FastifyPluginAsync = async (fastify: FastifyInstance
     },
   );
 
-  // Delete survey (Admin only)
+  // Delete survey (Admin only - draft surveys only)
   fastify.delete(
     '/surveys/:id',
     async (request, reply) => {
       try {
         const { id } = request.params as { id: number };
 
-        const exists = await surveyService.surveyExists(id);
-        if (!exists) {
+        // Check if survey exists and get its status
+        const survey = await surveyService.getSurveyById(id);
+        if (!survey) {
           return reply.code(404).send({
             error: {
               code: 'NOT_FOUND',
               message: `Survey with id ${id} not found`,
+            },
+          });
+        }
+
+        // Only allow deletion of draft surveys
+        if (survey.status !== 'draft') {
+          return reply.code(400).send({
+            error: {
+              code: 'INVALID_STATUS',
+              message: 'Only draft surveys can be deleted',
             },
           });
         }

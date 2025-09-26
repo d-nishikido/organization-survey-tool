@@ -87,6 +87,13 @@ export class SurveyService {
   }
 
   /**
+   * Delete a survey (draft status only)
+   */
+  static async deleteSurvey(surveyId: string): Promise<ApiResponse<void>> {
+    return apiClient.delete<ApiResponse<void>>(`${this.BASE_PATH}/${surveyId}`);
+  }
+
+  /**
    * Validate survey responses before submission
    */
   static async validateResponses(
