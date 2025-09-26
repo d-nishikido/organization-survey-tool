@@ -1,6 +1,7 @@
 import React from 'react';
 import { Outlet } from 'react-router-dom';
 import { AdminNavigation } from './AdminNavigation';
+import { UserMenu } from '@/components/ui/UserMenu';
 
 interface AdminLayoutProps {
   children?: React.ReactNode;
@@ -19,10 +20,7 @@ export function AdminLayout({ children }: AdminLayoutProps): JSX.Element {
               </h1>
             </div>
             <div className="flex items-center space-x-4">
-              <span className="text-sm text-gray-500">HR・管理者</span>
-              <div className="h-8 w-8 bg-blue-500 rounded-full flex items-center justify-center">
-                <span className="text-white text-sm font-medium">管</span>
-              </div>
+              <UserMenu />
             </div>
           </div>
         </div>

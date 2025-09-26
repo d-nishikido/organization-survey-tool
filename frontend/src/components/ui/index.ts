@@ -5,6 +5,7 @@ export { default as Modal } from './Modal';
 export { default as Loading } from './Loading';
 export { default as Alert } from './Alert';
 export { default as Typography } from './Typography';
+export { UserMenu } from './UserMenu';
 
 // Re-export types
 export type {
