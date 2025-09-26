@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { AdminLayout } from '../components/admin';
 import { SurveyOperationPanel } from '../components/admin/SurveyOperationPanel';
