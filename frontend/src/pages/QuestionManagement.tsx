@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { AdminLayout } from '@/components/admin';
 import { Card, Button, Input, Modal, Alert, Loading } from '@/components/ui';
 import { FormField, ValidationMessage } from '@/components/forms';
-import QuestionService from '@/api/services/questionService';
+import { questionService } from '@/api/services/questionService';
 import type { QuestionResponse, CreateQuestionDto, QuestionQuery } from '@/types/question';
 
 const QUESTION_TYPES = {
@@ -77,7 +77,7 @@ export function QuestionManagement(): JSX.Element {
         ...(typeFilter && { type: typeFilter as any }),
       };
 
-      const response = await QuestionService.getQuestions(query);
+      const response = await questionService.getQuestions(query);
       setQuestions(response.data.data);
       setTotalCount(response.data.total);
     } catch (err) {
@@ -167,9 +167,9 @@ export function QuestionManagement(): JSX.Element {
       };
 
       if (editingQuestion) {
-        await QuestionService.updateQuestion(editingQuestion.id, submitData);
+        await questionService.updateQuestion(editingQuestion.id, submitData);
       } else {
-        await QuestionService.createQuestion(submitData);
+        await questionService.createQuestion(submitData);
       }
       
       setShowModal(false);
@@ -189,7 +189,7 @@ export function QuestionManagement(): JSX.Element {
 
     setLoading(true);
     try {
-      await QuestionService.deleteQuestion(id);
+      await questionService.deleteQuestion(id);
       fetchQuestions();
     } catch (err) {
       console.error('Failed to delete question:', err);

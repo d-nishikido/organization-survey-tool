@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { AdminLayout } from '@/components/admin';
 import { Card, Button, Input, Alert, Loading } from '@/components/ui';
-import QuestionService from '@/api/services/questionService';
+import { questionService } from '@/api/services/questionService';
 import SurveyService from '@/api/services/surveyService';
 import type { QuestionResponse, QuestionQuery } from '@/types/question';
 import type { SurveyResponse } from '@/types/survey';
@@ -84,7 +84,7 @@ export function SurveyQuestionAssignment(): JSX.Element {
         ...(typeFilter && { type: typeFilter as any }),
       };
 
-      const response = await QuestionService.getQuestions(query);
+      const response = await questionService.getQuestions(query);
       // Filter out already assigned questions
       const assigned = assignedQuestions.map(q => q.id);
       const available = response.data.data.filter(q => !assigned.includes(q.id));
