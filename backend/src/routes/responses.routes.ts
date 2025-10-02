@@ -18,26 +18,6 @@ export const responsesRoutes: FastifyPluginAsync = async (fastify: FastifyInstan
   fastify.post(
     '/responses',
     {
-      schema: {
-        description: 'Submit an anonymous survey response',
-        tags: ['responses'],
-        body: SubmitResponseSchema,
-        response: {
-          201: ResponseConfirmationSchema,
-          400: {
-            type: 'object',
-            properties: {
-              error: {
-                type: 'object',
-                properties: {
-                  code: { type: 'string' },
-                  message: { type: 'string' },
-                },
-              },
-            },
-          },
-        },
-      },
       preHandler: [
         anonymityMiddleware,
         validateBody(SubmitResponseSchema),
@@ -69,26 +49,6 @@ export const responsesRoutes: FastifyPluginAsync = async (fastify: FastifyInstan
   fastify.get(
     '/responses/progress',
     {
-      schema: {
-        description: 'Get survey response progress for a session',
-        tags: ['responses'],
-        querystring: ProgressQuerySchema,
-        response: {
-          200: ResponseProgressSchema,
-          404: {
-            type: 'object',
-            properties: {
-              error: {
-                type: 'object',
-                properties: {
-                  code: { type: 'string' },
-                  message: { type: 'string' },
-                },
-              },
-            },
-          },
-        },
-      },
       preHandler: [
         anonymityMiddleware,
         validateQuery(ProgressQuerySchema),
@@ -120,32 +80,6 @@ export const responsesRoutes: FastifyPluginAsync = async (fastify: FastifyInstan
   fastify.post(
     '/responses/session',
     {
-      schema: {
-        description: 'Create a new anonymous session for survey response',
-        tags: ['responses'],
-        body: z.object({
-          survey_id: z.number().positive(),
-        }),
-        response: {
-          201: z.object({
-            session_token: z.string(),
-            expires_at: z.string(),
-            survey_id: z.number(),
-          }),
-          400: {
-            type: 'object',
-            properties: {
-              error: {
-                type: 'object',
-                properties: {
-                  code: { type: 'string' },
-                  message: { type: 'string' },
-                },
-              },
-            },
-          },
-        },
-      },
       preHandler: [anonymityMiddleware],
     },
     async (request, reply) => {
@@ -189,33 +123,6 @@ export const responsesRoutes: FastifyPluginAsync = async (fastify: FastifyInstan
   fastify.post(
     '/responses/complete',
     {
-      schema: {
-        description: 'Mark survey response as completed',
-        tags: ['responses'],
-        body: z.object({
-          survey_id: z.number().positive(),
-          session_id: z.string().uuid(),
-        }),
-        response: {
-          200: z.object({
-            success: z.boolean(),
-            message: z.string(),
-            completed_at: z.string(),
-          }),
-          400: {
-            type: 'object',
-            properties: {
-              error: {
-                type: 'object',
-                properties: {
-                  code: { type: 'string' },
-                  message: { type: 'string' },
-                },
-              },
-            },
-          },
-        },
-      },
       preHandler: [
         anonymityMiddleware,
         validateAnonymousSession,
