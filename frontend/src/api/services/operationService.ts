@@ -12,7 +12,7 @@ export const operationService = {
    */
   async startSurvey(surveyId: number): Promise<SurveyOperation> {
     const response = await apiClient.post<SurveyOperation>(
-      `/surveys/${surveyId}/start`
+      `/api/surveys/${surveyId}/start`
     );
     return response;
   },
@@ -22,7 +22,7 @@ export const operationService = {
    */
   async stopSurvey(surveyId: number): Promise<SurveyOperation> {
     const response = await apiClient.post<SurveyOperation>(
-      `/surveys/${surveyId}/stop`
+      `/api/surveys/${surveyId}/stop`
     );
     return response;
   },
@@ -32,7 +32,7 @@ export const operationService = {
    */
   async pauseSurvey(surveyId: number): Promise<SurveyOperation> {
     const response = await apiClient.post<SurveyOperation>(
-      `/surveys/${surveyId}/pause`
+      `/api/surveys/${surveyId}/pause`
     );
     return response;
   },
@@ -42,7 +42,7 @@ export const operationService = {
    */
   async resumeSurvey(surveyId: number): Promise<SurveyOperation> {
     const response = await apiClient.post<SurveyOperation>(
-      `/surveys/${surveyId}/resume`
+      `/api/surveys/${surveyId}/resume`
     );
     return response;
   },
@@ -52,7 +52,7 @@ export const operationService = {
    */
   async createReminder(reminder: ReminderSettings): Promise<ReminderSettings> {
     const response = await apiClient.post<ReminderSettings>(
-      `/surveys/${reminder.surveyId}/reminders`,
+      `/api/surveys/${reminder.surveyId}/reminders`,
       reminder
     );
     return response;
@@ -63,7 +63,7 @@ export const operationService = {
    */
   async getSurveyReminders(surveyId: number): Promise<ReminderSettings[]> {
     const response = await apiClient.get<ReminderSettings[]>(
-      `/surveys/${surveyId}/reminders`
+      `/api/surveys/${surveyId}/reminders`
     );
     return response;
   },
@@ -77,7 +77,7 @@ export const operationService = {
     data: Partial<ReminderSettings>
   ): Promise<ReminderSettings> {
     const response = await apiClient.put<ReminderSettings>(
-      `/surveys/${surveyId}/reminders/${reminderId}`,
+      `/api/surveys/${surveyId}/reminders/${reminderId}`,
       data
     );
     return response;
@@ -87,7 +87,7 @@ export const operationService = {
    * Delete a reminder
    */
   async deleteReminder(surveyId: number, reminderId: number): Promise<void> {
-    await apiClient.delete(`/surveys/${surveyId}/reminders/${reminderId}`);
+    await apiClient.delete(`/api/surveys/${surveyId}/reminders/${reminderId}`);
   },
 
   /**
@@ -95,7 +95,7 @@ export const operationService = {
    */
   async getParticipationStats(surveyId: number): Promise<ParticipationStats> {
     const response = await apiClient.get<ParticipationStats>(
-      `/surveys/${surveyId}/participation`
+      `/api/surveys/${surveyId}/participation`
     );
     return response;
   },
@@ -105,7 +105,7 @@ export const operationService = {
    */
   async getSurveyOperationLogs(surveyId: number): Promise<OperationLog[]> {
     const response = await apiClient.get<OperationLog[]>(
-      `/surveys/${surveyId}/logs`
+      `/api/surveys/${surveyId}/logs`
     );
     return response;
   },
