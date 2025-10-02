@@ -54,7 +54,7 @@ export interface Survey {
 
 export interface Question {
   id: string;
-  type: 'multiple_choice' | 'scale' | 'text' | 'yes_no';
+  type: 'multiple_choice' | 'rating' | 'scale' | 'text' | 'yes_no';
   question: string;
   options?: string[];
   required: boolean;

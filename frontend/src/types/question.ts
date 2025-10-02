@@ -1,4 +1,4 @@
-export type QuestionType = 
+export type QuestionType =
   | 'text'
   | 'textarea'
   | 'radio'
@@ -8,15 +8,15 @@ export type QuestionType =
   | 'scale'
   | 'boolean';
 
-export type QuestionCategory = 
-  | 'engagement'
-  | 'satisfaction'
-  | 'leadership'
-  | 'culture'
-  | 'growth'
-  | 'worklife'
-  | 'communication'
-  | 'other';
+// Updated to match database category codes (A, B, C, D, E, F, G)
+export type QuestionCategory =
+  | 'A'
+  | 'B'
+  | 'C'
+  | 'D'
+  | 'E'
+  | 'F'
+  | 'G';
 
 export interface CreateQuestionDto {
   question: string;

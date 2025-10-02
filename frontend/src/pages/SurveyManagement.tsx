@@ -198,8 +198,13 @@ const SurveyCard = memo(({
                   編集
                 </Button>
               </Link>
-              <Button 
-                variant="danger" 
+              <Link to={`/admin/surveys/${survey.id}/questions`}>
+                <Button variant="secondary" size="sm">
+                  質問管理
+                </Button>
+              </Link>
+              <Button
+                variant="danger"
                 size="sm"
                 onClick={() => onDelete(survey.id)}
               >

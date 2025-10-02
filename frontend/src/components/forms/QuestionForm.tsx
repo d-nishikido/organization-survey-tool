@@ -1,6 +1,7 @@
 
 import { Question } from '@/types/survey';
 import { MultipleChoiceQuestion } from './questions/MultipleChoiceQuestion';
+import { RatingQuestion } from './questions/RatingQuestion';
 import { ScaleQuestion } from './questions/ScaleQuestion';
 import { TextQuestion } from './questions/TextQuestion';
 import { YesNoQuestion } from './questions/YesNoQuestion';
@@ -35,6 +36,15 @@ export function QuestionForm({
             question={question}
             value={value as string}
             onChange={onChange as (value: string) => void}
+            error={currentError}
+          />
+        );
+      case 'rating':
+        return (
+          <RatingQuestion
+            question={question}
+            value={value as number}
+            onChange={onChange as (value: number) => void}
             error={currentError}
           />
         );

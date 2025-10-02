@@ -92,7 +92,7 @@ async function buildServer(): Promise<typeof server> {
   await server.register(healthRoutes, { prefix: '/api' });
   await server.register(surveysRoutes, { prefix: '/api' });
   await server.register(operationsRoutes, { prefix: '/api' });
-  // await server.register(questionsRoutes, { prefix: '/api' });
+  await server.register(questionsRoutes, { prefix: '/api' });
   // await server.register(responsesRoutes, { prefix: '/api' });
   // await server.register(analyticsRoutes, { prefix: '/api' });
 

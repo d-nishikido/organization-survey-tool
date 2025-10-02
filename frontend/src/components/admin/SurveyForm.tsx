@@ -4,7 +4,7 @@ import { AdminLayout } from './AdminLayout';
 import { Card, Button, Input, Alert, Loading } from '../ui';
 import { FormField, ValidationMessage } from '../forms';
 import { SurveyService } from '../../api/services/surveyService';
-import type { CreateSurveyDto, SurveyResponse, SurveyStatus } from '../../types/survey';
+import type { CreateSurveyDto, SurveyStatus } from '../../types/survey';
 
 interface SurveyFormData {
   title: string;
@@ -62,9 +62,9 @@ export function SurveyForm(): JSX.Element {
       setFormData({
         title: surveyData.title,
         description: surveyData.description || '',
-        start_date: surveyData.start_date.split('T')[0],
-        end_date: surveyData.end_date.split('T')[0],
-        is_anonymous: surveyData.is_anonymous,
+        start_date: surveyData.start_date ? surveyData.start_date.split('T')[0] : '',
+        end_date: surveyData.end_date ? surveyData.end_date.split('T')[0] : '',
+        is_anonymous: surveyData.is_anonymous || false,
         status: surveyData.status,
       });
     } catch (err) {

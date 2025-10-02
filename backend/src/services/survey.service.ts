@@ -50,7 +50,7 @@ export class SurveyService {
     const offsetParam = paramCount;
 
     const surveysQuery = `
-      SELECT 
+      SELECT
         id,
         title,
         description,
@@ -86,7 +86,7 @@ export class SurveyService {
    */
   async getSurveyById(id: number): Promise<SurveyResponse | null> {
     const query = `
-      SELECT 
+      SELECT
         id,
         title,
         description,
@@ -111,23 +111,21 @@ export class SurveyService {
   /**
    * Get all questions for a specific survey
    */
-  /**
-   * Get all questions for a specific survey
-   */
   async getSurveyQuestions(surveyId: number): Promise<any[]> {
     const query = `
-      SELECT 
+      SELECT
         q.id,
-        q.question_text as text,
+        q.question_text as question,
         q.question_type as type,
-        q.category_id,
+        sc.code as category,
         q.is_required,
         q.options,
         q.description,
         sq.question_order as display_order
       FROM questions q
       INNER JOIN survey_questions sq ON q.id = sq.question_id
-      WHERE sq.survey_id = $1 AND sq.is_active = true
+      LEFT JOIN survey_categories sc ON q.category_id = sc.id
+      WHERE sq.survey_id = $1
       ORDER BY sq.question_order ASC
     `;
 
@@ -148,7 +146,7 @@ export class SurveyService {
         is_anonymous
       )
       VALUES ($1, $2, $3, $4, $5, $6)
-      RETURNING 
+      RETURNING
         id,
         title,
         description,
@@ -240,7 +238,7 @@ export class SurveyService {
       UPDATE surveys
       SET ${fields.join(', ')}
       WHERE id = $${paramCount}
-      RETURNING 
+      RETURNING
         id,
         title,
         description,
@@ -286,5 +284,55 @@ export class SurveyService {
     const query = 'SELECT 1 FROM surveys WHERE id = $1 LIMIT 1';
     const result = await db.queryOne(query, [id]);
     return !!result;
+  }
+
+  /**
+   * Assign question to survey
+   */
+  async assignQuestionToSurvey(surveyId: number, questionId: number, questionOrder?: number): Promise<void> {
+    // Get the next question order if not provided
+    let finalQuestionOrder = questionOrder;
+    if (finalQuestionOrder === undefined) {
+      const maxOrderQuery = 'SELECT COALESCE(MAX(question_order), 0) as max_order FROM survey_questions WHERE survey_id = $1';
+      const result = await db.queryOne<{ max_order: number }>(maxOrderQuery, [surveyId]);
+      finalQuestionOrder = (result?.max_order || 0) + 1;
+    }
+
+    const query = `
+      INSERT INTO survey_questions (survey_id, question_id, question_order)
+      VALUES ($1, $2, $3)
+      ON CONFLICT (survey_id, question_id)
+      DO UPDATE SET question_order = $3
+    `;
+
+    await db.query(query, [surveyId, questionId, finalQuestionOrder]);
+    logger.info('Question assigned to survey', { surveyId, questionId, questionOrder: finalQuestionOrder });
+  }
+
+  /**
+   * Update question order in survey
+   */
+  async updateQuestionOrder(surveyId: number, questions: { question_id: number; question_order: number }[]): Promise<void> {
+    await db.transaction(async (query) => {
+      for (const q of questions) {
+        const updateQuery = `
+          UPDATE survey_questions
+          SET question_order = $1
+          WHERE survey_id = $2 AND question_id = $3
+        `;
+        await query(updateQuery, [q.question_order, surveyId, q.question_id]);
+      }
+    });
+
+    logger.info('Question order updated', { surveyId, questionsCount: questions.length });
+  }
+
+  /**
+   * Remove question from survey
+   */
+  async removeQuestionFromSurvey(surveyId: number, questionId: number): Promise<void> {
+    const query = 'DELETE FROM survey_questions WHERE survey_id = $1 AND question_id = $2';
+    await db.query(query, [surveyId, questionId]);
+    logger.info('Question removed from survey', { surveyId, questionId });
   }
 }

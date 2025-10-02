@@ -1,5 +1,4 @@
 import { FastifyInstance, FastifyPluginAsync } from 'fastify';
-import type { FastifyInstance, FastifyPluginAsync } from 'fastify';
 import { QuestionService } from '../services/question.service';
 import {
   CreateQuestionSchema,
@@ -22,18 +21,6 @@ export const questionsRoutes: FastifyPluginAsync = async (fastify: FastifyInstan
   fastify.get(
     '/questions',
     {
-      schema: {
-        querystring: {
-          type: 'object',
-          properties: {
-            page: { type: 'number' },
-            pageSize: { type: 'number' }
-          }
-        },
-        response: {
-          200: QuestionListSchema
-        }
-      },
       preHandler: [validateQuery(QuestionQuerySchema)]
     },
     async (request, reply) => {
@@ -57,17 +44,6 @@ export const questionsRoutes: FastifyPluginAsync = async (fastify: FastifyInstan
   fastify.get(
     '/questions/:id',
     {
-      schema: {
-        params: {
-          type: 'object',
-          properties: {
-            id: { type: 'number' }
-          }
-        },
-        response: {
-          200: QuestionResponseSchema
-        }
-      },
       preHandler: [validateParams(ParamsSchema)]
     },
     async (request, reply) => {
@@ -101,13 +77,7 @@ export const questionsRoutes: FastifyPluginAsync = async (fastify: FastifyInstan
   fastify.post(
     '/questions',
     {
-      schema: {
-        body: CreateQuestionSchema,
-        response: {
-          201: QuestionResponseSchema
-        }
-      },
-      preHandler: [validateBody(CreateQuestionSchema)],
+      preHandler: [validateBody(CreateQuestionSchema)]
     },
     async (request, reply) => {
       try {
@@ -145,18 +115,6 @@ export const questionsRoutes: FastifyPluginAsync = async (fastify: FastifyInstan
   fastify.put(
     '/questions/:id',
     {
-      schema: {
-        params: {
-          type: 'object',
-          properties: {
-            id: { type: 'number' }
-          }
-        },
-        body: UpdateQuestionSchema,
-        response: {
-          200: QuestionResponseSchema
-        }
-      },
       preHandler: [validateParams(ParamsSchema), validateBody(UpdateQuestionSchema)]
     },
     async (request, reply) => {
@@ -204,17 +162,6 @@ export const questionsRoutes: FastifyPluginAsync = async (fastify: FastifyInstan
   fastify.delete(
     '/questions/:id',
     {
-      schema: {
-        params: {
-          type: 'object',
-          properties: {
-            id: { type: 'number' }
-          }
-        },
-        response: {
-          204: { type: 'null' }
-        }
-      },
       preHandler: [validateParams(ParamsSchema)]
     },
     async (request, reply) => {

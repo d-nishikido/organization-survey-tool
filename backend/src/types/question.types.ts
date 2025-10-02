@@ -12,15 +12,15 @@ export const QuestionType = z.enum([
 ]);
 export type QuestionType = z.infer<typeof QuestionType>;
 
+// Updated to match database category codes (A, B, C, D, E, F, G)
 export const QuestionCategory = z.enum([
-  'engagement',
-  'satisfaction',
-  'leadership',
-  'culture',
-  'growth',
-  'worklife',
-  'communication',
-  'other',
+  'A',
+  'B',
+  'C',
+  'D',
+  'E',
+  'F',
+  'G',
 ]);
 export type QuestionCategory = z.infer<typeof QuestionCategory>;
 
