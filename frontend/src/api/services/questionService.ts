@@ -28,7 +28,7 @@ export const questionService = {
    * Get a single question by ID
    */
   async getQuestion(id: number): Promise<QuestionResponse> {
-    const response = await apiClient.get(`/questions/${id}`) as QuestionResponse;
+    const response = await apiClient.get(`/api/questions/${id}`) as QuestionResponse;
     return response;
   },
 
@@ -37,7 +37,7 @@ export const questionService = {
    */
   async createQuestion(data: CreateQuestionDto): Promise<QuestionResponse> {
     try {
-      const response = await apiClient.post('/questions', data) as QuestionResponse;
+      const response = await apiClient.post('/api/questions', data) as QuestionResponse;
       return response;
     } catch (error: any) {
       // If we get a 404, it might be a timing issue - retry once
@@ -46,7 +46,7 @@ export const questionService = {
         await new Promise(resolve => setTimeout(resolve, 500));
 
         try {
-          const response = await apiClient.post('/questions', data) as QuestionResponse;
+          const response = await apiClient.post('/api/questions', data) as QuestionResponse;
           console.log('Question creation succeeded on retry');
           return response;
         } catch (retryError) {
@@ -62,7 +62,7 @@ export const questionService = {
    * Update an existing question
    */
   async updateQuestion(id: number, data: UpdateQuestionDto): Promise<QuestionResponse> {
-    const response = await apiClient.put(`/questions/${id}`, data) as QuestionResponse;
+    const response = await apiClient.put(`/api/questions/${id}`, data) as QuestionResponse;
     return response;
   },
 
@@ -70,7 +70,7 @@ export const questionService = {
    * Delete a question
    */
   async deleteQuestion(id: number): Promise<void> {
-    await apiClient.delete(`/questions/${id}`);
+    await apiClient.delete(`/api/questions/${id}`);
   },
 
   /**
