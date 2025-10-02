@@ -12,16 +12,8 @@ export const QuestionType = z.enum([
 ]);
 export type QuestionType = z.infer<typeof QuestionType>;
 
-// Updated to match database category codes (A, B, C, D, E, F, G)
-export const QuestionCategory = z.enum([
-  'A',
-  'B',
-  'C',
-  'D',
-  'E',
-  'F',
-  'G',
-]);
+// Category is now the category name (not code) from survey_categories table
+export const QuestionCategory = z.string();
 export type QuestionCategory = z.infer<typeof QuestionCategory>;
 
 export const CreateQuestionSchema = z.object({
