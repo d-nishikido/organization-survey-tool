@@ -16,6 +16,7 @@ import { SurveyForm } from './components/admin/SurveyForm';
 import { SurveyPreview } from './components/admin/SurveyPreview';
 import { AnalyticsDashboard } from './components/analytics';
 import { QuestionManagement } from './pages/QuestionManagement';
+import { SurveyQuestionAssignmentDebug } from './pages/SurveyQuestionAssignmentDebug';
 import { SurveyQuestionAssignment } from './pages/SurveyQuestionAssignment';
 
 const queryClient = new QueryClient({
@@ -39,15 +40,15 @@ export function App(): JSX.Element {
               <Route path="/" element={<HomePage />} />
               <Route path="/login" element={<LoginPage />} />
               <Route path="/unauthorized" element={<UnauthorizedPage />} />
-              
+
               {/* Survey Routes (Anonymous Access) */}
               <Route path="/surveys" element={<SurveyListPage />} />
               <Route path="/survey/:surveyId/details" element={<SurveyDetailPage />} />
               <Route path="/survey/:surveyId" element={<SurveyPage />} />
-              
+
               {/* Protected Routes - Authenticated Users */}
-              <Route 
-                path="/dashboard" 
+              <Route
+                path="/dashboard"
                 element={
                   <ProtectedRoute>
                     <div className="p-8">
@@ -55,9 +56,9 @@ export function App(): JSX.Element {
                       <p>認証ユーザー専用ページ（開発中）</p>
                     </div>
                   </ProtectedRoute>
-                } 
+                }
               />
-              
+
               {/* HR Routes */}
               <Route
                 path="/admin"
@@ -131,6 +132,11 @@ export function App(): JSX.Element {
                   </HRRoute>
                 }
               />
+              {/* デバッグ用：認証なしルート - 実際のコンポーネントを表示 */}
+              <Route
+                path="/debug/surveys/:surveyId/questions"
+                element={<SurveyQuestionAssignment />}
+              />
               <Route
                 path="/admin/*"
                 element={
@@ -139,18 +145,18 @@ export function App(): JSX.Element {
                   </HRRoute>
                 }
               />
-              
+
               {/* Results Routes */}
-              <Route 
-                path="/results/:surveyId" 
+              <Route
+                path="/results/:surveyId"
                 element={
                   <div className="p-8">
                     <h1 className="text-2xl font-bold">調査結果</h1>
                     <p>結果表示ページ（開発中）</p>
                   </div>
-                } 
+                }
               />
-              
+
               {/* Catch-all Route */}
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>

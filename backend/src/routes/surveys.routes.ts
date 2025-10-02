@@ -266,7 +266,7 @@ export const surveysRoutes: FastifyPluginAsync = async (fastify: FastifyInstance
           type: 'object',
           properties: {
             question_id: { type: 'number' },
-            order_index: { type: 'number' }
+            question_order: { type: 'number' }
           },
           required: ['question_id']
         }
@@ -276,7 +276,7 @@ export const surveysRoutes: FastifyPluginAsync = async (fastify: FastifyInstance
     async (request, reply) => {
       try {
         const { id } = request.params as { id: number };
-        const { question_id, order_index } = request.body as { question_id: number; order_index?: number };
+        const { question_id, question_order } = request.body as { question_id: number; question_order?: number };
 
         // Check if survey exists
         const surveyExists = await surveyService.surveyExists(id);
@@ -289,7 +289,7 @@ export const surveysRoutes: FastifyPluginAsync = async (fastify: FastifyInstance
           });
         }
 
-        await surveyService.assignQuestionToSurvey(id, question_id, order_index);
+        await surveyService.assignQuestionToSurvey(id, question_id, question_order);
         return reply.code(201).send({ message: 'Question assigned successfully' });
       } catch (error) {
         fastify.log.error(error);
@@ -323,9 +323,9 @@ export const surveysRoutes: FastifyPluginAsync = async (fastify: FastifyInstance
                 type: 'object',
                 properties: {
                   question_id: { type: 'number' },
-                  order_index: { type: 'number' }
+                  question_order: { type: 'number' }
                 },
-                required: ['question_id', 'order_index']
+                required: ['question_id', 'question_order']
               }
             }
           },
@@ -337,7 +337,7 @@ export const surveysRoutes: FastifyPluginAsync = async (fastify: FastifyInstance
     async (request, reply) => {
       try {
         const { id } = request.params as { id: number };
-        const { questions } = request.body as { questions: { question_id: number; order_index: number }[] };
+        const { questions } = request.body as { questions: { question_id: number; question_order: number }[] };
 
         // Check if survey exists
         const surveyExists = await surveyService.surveyExists(id);

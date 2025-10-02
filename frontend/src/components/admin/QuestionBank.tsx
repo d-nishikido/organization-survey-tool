@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Card, Button, Input, Modal, Alert, Loading } from '../ui';
 import { FormField, ValidationMessage } from '../forms';
-import type { QuestionResponse, CreateQuestionDto } from '../../types/question';
+import type { QuestionResponse, CreateQuestionDto, QuestionCategory, QuestionType } from '../../types/question';
 
 const QUESTION_TYPES = {
   text: 'テキスト（短文）',
@@ -14,21 +14,21 @@ const QUESTION_TYPES = {
   boolean: 'はい/いいえ',
 } as const;
 
-const CATEGORIES = {
-  engagement: 'エンゲージメント',
-  satisfaction: '満足度',
-  leadership: 'リーダーシップ',
-  culture: '企業文化',
-  growth: '成長機会',
-  worklife: 'ワークライフバランス',
-  communication: 'コミュニケーション',
-  other: 'その他',
-} as const;
+// Map database category codes to display labels
+const CATEGORIES: Record<QuestionCategory, string> = {
+  'A': 'エンゲージメント',
+  'B': '満足度',
+  'C': 'リーダーシップ',
+  'D': '企業文化',
+  'E': '成長機会',
+  'F': 'ワークライフバランス',
+  'G': 'コミュニケーション',
+};
 
 interface QuestionFormData {
   question: string;
-  type: keyof typeof QUESTION_TYPES;
-  category: keyof typeof CATEGORIES;
+  type: QuestionType;
+  category: QuestionCategory;
   is_required: boolean;
   options: string[];
   min_value?: number;
@@ -44,7 +44,7 @@ interface QuestionBankProps {
 
 export function QuestionBank({ onQuestionSelect, selectionMode = false }: QuestionBankProps): JSX.Element {
   const [questions, setQuestions] = useState<QuestionResponse[]>([]);
-  const [totalCount, setTotalCount] = useState(0);
+  const [, setTotalCount] = useState(0);
   const [currentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<string>('');
@@ -55,7 +55,7 @@ export function QuestionBank({ onQuestionSelect, selectionMode = false }: Questi
   const [formData, setFormData] = useState<QuestionFormData>({
     question: '',
     type: 'text',
-    category: 'other',
+    category: 'G' as QuestionCategory,
     is_required: false,
     options: [],
   });
@@ -93,7 +93,7 @@ export function QuestionBank({ onQuestionSelect, selectionMode = false }: Questi
     setFormData({
       question: '',
       type: 'text',
-      category: 'other',
+      category: 'G' as QuestionCategory,
       is_required: false,
       options: [],
     });

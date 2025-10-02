@@ -47,9 +47,9 @@ export function LoginPage(): JSX.Element {
         department: '営業部'
       }
     };
-    
+
     login(demoUsers[role]);
-    
+
     // Navigate based on user role
     switch(role) {
       case 'hr':

@@ -14,7 +14,7 @@ export const operationService = {
     const response = await apiClient.post<SurveyOperation>(
       `/surveys/${surveyId}/start`
     );
-    return response.data;
+    return response;
   },
 
   /**
@@ -24,7 +24,7 @@ export const operationService = {
     const response = await apiClient.post<SurveyOperation>(
       `/surveys/${surveyId}/stop`
     );
-    return response.data;
+    return response;
   },
 
   /**
@@ -34,7 +34,7 @@ export const operationService = {
     const response = await apiClient.post<SurveyOperation>(
       `/surveys/${surveyId}/pause`
     );
-    return response.data;
+    return response;
   },
 
   /**
@@ -44,7 +44,7 @@ export const operationService = {
     const response = await apiClient.post<SurveyOperation>(
       `/surveys/${surveyId}/resume`
     );
-    return response.data;
+    return response;
   },
 
   /**
@@ -55,7 +55,7 @@ export const operationService = {
       `/surveys/${reminder.surveyId}/reminders`,
       reminder
     );
-    return response.data;
+    return response;
   },
 
   /**
@@ -65,7 +65,7 @@ export const operationService = {
     const response = await apiClient.get<ReminderSettings[]>(
       `/surveys/${surveyId}/reminders`
     );
-    return response.data;
+    return response;
   },
 
   /**
@@ -80,7 +80,7 @@ export const operationService = {
       `/surveys/${surveyId}/reminders/${reminderId}`,
       data
     );
-    return response.data;
+    return response;
   },
 
   /**
@@ -97,7 +97,7 @@ export const operationService = {
     const response = await apiClient.get<ParticipationStats>(
       `/surveys/${surveyId}/participation`
     );
-    return response.data;
+    return response;
   },
 
   /**
@@ -107,6 +107,6 @@ export const operationService = {
     const response = await apiClient.get<OperationLog[]>(
       `/surveys/${surveyId}/logs`
     );
-    return response.data;
+    return response;
   },
 };

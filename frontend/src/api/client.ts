@@ -98,6 +98,9 @@ class ApiClient {
         case 404:
           errorCode = ApiErrorCode.NOT_FOUND;
           message = responseData?.message || 'Resource not found';
+          console.error('[API] 404 Error - URL:', error.config?.url);
+          console.error('[API] 404 Error - Method:', error.config?.method);
+          console.error('[API] 404 Error - Data:', error.config?.data);
           break;
         case 500:
         case 502:
@@ -141,7 +144,9 @@ class ApiClient {
   }
 
   async post<T>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
+    console.log('[API] POST request:', url, data);
     const response = await this.client.post<T>(url, data, config);
+    console.log('[API] POST response:', response.status, response.data);
     return response.data;
   }
 

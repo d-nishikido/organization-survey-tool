@@ -16,15 +16,15 @@ const QUESTION_TYPES = {
   boolean: 'はい/いいえ',
 } as const;
 
+// Updated to match database category codes
 const CATEGORIES = {
-  engagement: 'エンゲージメント',
-  satisfaction: '満足度',
-  leadership: 'リーダーシップ',
-  culture: '企業文化',
-  growth: '成長機会',
-  worklife: 'ワークライフバランス',
-  communication: 'コミュニケーション',
-  other: 'その他',
+  A: 'A.仕事について',
+  B: 'B.最近の状態について',
+  C: 'C.周りの方々について',
+  D: 'D.満足度について',
+  E: 'E.お仕事について',
+  F: 'F.職場について',
+  G: 'G.会社や組織について',
 } as const;
 
 interface QuestionFormData {
@@ -46,13 +46,13 @@ export function QuestionManagement(): JSX.Element {
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<string>('');
   const [typeFilter, setTypeFilter] = useState<string>('');
-  
+
   const [showModal, setShowModal] = useState(false);
   const [editingQuestion, setEditingQuestion] = useState<QuestionResponse | null>(null);
   const [formData, setFormData] = useState<QuestionFormData>({
     question: '',
     type: 'text',
-    category: 'other',
+    category: 'A',
     is_required: false,
     options: [],
   });
@@ -67,7 +67,7 @@ export function QuestionManagement(): JSX.Element {
   const fetchQuestions = async () => {
     setLoading(true);
     setError(null);
-    
+
     try {
       const query: QuestionQuery = {
         page: currentPage,
@@ -78,8 +78,8 @@ export function QuestionManagement(): JSX.Element {
       };
 
       const response = await questionService.getQuestions(query);
-      setQuestions(response.data.data);
-      setTotalCount(response.data.total);
+      setQuestions(response.data);
+      setTotalCount(response.total);
     } catch (err) {
       console.error('Failed to fetch questions:', err);
       setError('質問の取得に失敗しました');
@@ -96,7 +96,7 @@ export function QuestionManagement(): JSX.Element {
     setFormData({
       question: '',
       type: 'text',
-      category: 'other',
+      category: 'A',
       is_required: false,
       options: [],
     });
@@ -113,7 +113,7 @@ export function QuestionManagement(): JSX.Element {
     setFormData({
       question: question.question,
       type: question.type,
-      category: question.category,
+      category: question.category || 'A', // Fallback for null categories
       is_required: question.is_required,
       options: question.options || [],
       min_value: question.min_value || undefined,
@@ -152,7 +152,8 @@ export function QuestionManagement(): JSX.Element {
     if (!validateForm()) return;
 
     setSaving(true);
-    
+    setErrors({}); // Clear previous errors
+
     try {
       const submitData: CreateQuestionDto = {
         question: formData.question.trim(),
@@ -166,17 +167,51 @@ export function QuestionManagement(): JSX.Element {
         ...(formData.max_label && { max_label: formData.max_label }),
       };
 
+      // Enhanced logging for debugging
+      console.log('Submitting question data:', submitData);
+      console.log('Is editing?', !!editingQuestion);
+
       if (editingQuestion) {
+        console.log('Updating question with ID:', editingQuestion.id);
         await questionService.updateQuestion(editingQuestion.id, submitData);
       } else {
+        console.log('Creating new question');
         await questionService.createQuestion(submitData);
       }
-      
+
+      console.log('Question saved successfully');
       setShowModal(false);
       fetchQuestions();
-    } catch (err) {
+    } catch (err: any) {
       console.error('Failed to save question:', err);
-      setErrors({ general: '保存に失敗しました' });
+      console.error('Error details:', {
+        code: err?.code,
+        message: err?.message,
+        statusCode: err?.statusCode,
+        timestamp: err?.timestamp,
+        details: err?.details
+      });
+
+      // Extract specific error details from API response
+      if (err && err.details && err.details.issues) {
+        const newErrors: Record<string, string> = {};
+        err.details.issues.forEach((issue: any) => {
+          if (issue.path && issue.path.length > 0) {
+            const field = issue.path[0];
+            newErrors[field] = issue.message;
+          }
+        });
+        setErrors(newErrors);
+      } else if (err && err.statusCode === 404) {
+        // Special handling for 404 errors
+        setErrors({
+          general: 'サーバーとの接続に問題があります。しばらく待ってから再度お試しください。'
+        });
+      } else if (err && err.message) {
+        setErrors({ general: err.message });
+      } else {
+        setErrors({ general: '保存に失敗しました。入力内容を確認してください。' });
+      }
     } finally {
       setSaving(false);
     }
@@ -240,7 +275,7 @@ export function QuestionManagement(): JSX.Element {
               調査で使用する質問の作成・編集・削除を行います
             </p>
           </div>
-          
+
           <Button variant="primary" size="md" onClick={openCreateModal}>
             新しい質問を作成
           </Button>
@@ -294,7 +329,7 @@ export function QuestionManagement(): JSX.Element {
               </Button>
             </div>
           </div>
-          
+
           {/* Results summary */}
           <div className="mt-4 pt-4 border-t border-gray-200">
             <p className="text-sm text-gray-600">
@@ -329,10 +364,10 @@ export function QuestionManagement(): JSX.Element {
                     <div className="flex-1">
                       <div className="flex items-center space-x-3 mb-2">
                         <span className="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded">
-                          {CATEGORIES[question.category]}
+                          {question.category ? CATEGORIES[question.category as keyof typeof CATEGORIES] || question.category : '未分類'}
                         </span>
                         <span className="px-2 py-1 text-xs font-medium bg-gray-100 text-gray-800 rounded">
-                          {QUESTION_TYPES[question.type]}
+                          {QUESTION_TYPES[question.type] || question.type}
                         </span>
                         {question.is_required && (
                           <span className="px-2 py-1 text-xs font-medium bg-red-100 text-red-800 rounded">
@@ -340,19 +375,19 @@ export function QuestionManagement(): JSX.Element {
                           </span>
                         )}
                       </div>
-                      
+
                       <p className="text-gray-900 mb-2 text-sm">{question.question}</p>
-                      
+
                       {question.options && question.options.length > 0 && (
                         <div className="text-sm text-gray-600 mb-1">
                           <span className="font-medium">選択肢:</span> {question.options.join(', ')}
                         </div>
                       )}
-                      
+
                       {(question.min_value !== null && question.max_value !== null) && (
                         <div className="text-sm text-gray-600 mb-1">
                           <span className="font-medium">範囲:</span> {question.min_value} - {question.max_value}
-                          {question.min_label && question.max_label && 
+                          {question.min_label && question.max_label &&
                             ` (${question.min_label} - ${question.max_label})`
                           }
                         </div>
@@ -443,7 +478,7 @@ export function QuestionManagement(): JSX.Element {
                 {searchTerm || categoryFilter || typeFilter ? '条件に一致する質問が見つかりません' : '質問がありません'}
               </h3>
               <p className="text-gray-600 mb-6">
-                {searchTerm || categoryFilter || typeFilter 
+                {searchTerm || categoryFilter || typeFilter
                   ? 'フィルター条件を変更するか、新しい質問を作成してください。'
                   : '新しい質問を作成して、質問バンクを構築しましょう。'
                 }
@@ -492,6 +527,7 @@ export function QuestionManagement(): JSX.Element {
                     <option key={key} value={key}>{label}</option>
                   ))}
                 </select>
+                {errors.category && <ValidationMessage type="error" message={errors.category} />}
               </FormField>
 
               <FormField label="質問タイプ" isRequired>
@@ -504,6 +540,7 @@ export function QuestionManagement(): JSX.Element {
                     <option key={key} value={key}>{label}</option>
                   ))}
                 </select>
+                {errors.type && <ValidationMessage type="error" message={errors.type} />}
               </FormField>
             </div>
 
@@ -560,7 +597,7 @@ export function QuestionManagement(): JSX.Element {
                     />
                   </FormField>
                 </div>
-                
+
                 <div className="grid grid-cols-2 gap-4">
                   <FormField label="最小値ラベル">
                     <Input
@@ -580,6 +617,8 @@ export function QuestionManagement(): JSX.Element {
                   </FormField>
                 </div>
                 {errors.range && <ValidationMessage type="error" message={errors.range} />}
+                {errors.min_value && <ValidationMessage type="error" message={errors.min_value} />}
+                {errors.max_value && <ValidationMessage type="error" message={errors.max_value} />}
               </div>
             )}
 

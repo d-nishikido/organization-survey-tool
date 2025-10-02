@@ -1,6 +1,6 @@
 import apiClient from '../client';
 import { ApiResponse } from '../types';
-import { ReportRequest, ReportJob } from '../../types/reports';
+import { ReportRequest } from '../../types/reports';
 
 interface DashboardData {
   totalSurveys: number;

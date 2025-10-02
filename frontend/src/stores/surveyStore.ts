@@ -37,7 +37,7 @@ export const useSurveyStore = create<SurveyStore>()(
       },
 
       saveResponse: (surveyId: string, questionId: string, value: string | number) => {
-        const response: SurveyResponse = {
+        const response: SurveyResponseData = {
           questionId,
           value,
           timestamp: new Date(),

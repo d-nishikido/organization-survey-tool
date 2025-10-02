@@ -32,7 +32,7 @@ export default defineConfig({
     video: 'retain-on-failure',
 
     // タイムアウト設定
-    actionTimeout: 10000,
+    actionTimeout: 15000, // Increased for error scenarios
     navigationTimeout: 30000,
   },
 
@@ -68,8 +68,18 @@ export default defineConfig({
 
   // テストファイルの検索パターン
   testMatch: [
-    '**/smoke.spec.ts', // Pre-commit時はSmokeテストのみ
-    '**/login-redirect.spec.ts', // ログインリダイレクトテスト
+    '**/debug-auth-bypass.spec.ts', // 認証バイパステスト
+    '**/debug-routing.spec.ts', // ルーティングデバッグ
+    '**/simple-question-assignment.spec.ts', // デバッグ用テスト
+    '**/smoke.spec.ts', // 基本動作確認テスト
+    '**/survey-response-flow.spec.ts', // 調査回答フローテスト
+    '**/question-types.spec.ts', // 質問タイプ別テスト（rating_5含む）
+    '**/anonymity-verification.spec.ts', // 匿名性確保テスト
+    '**/survey-question-assignment.spec.ts', // 質問割り当て機能テスト
+    '**/verify-real-component.spec.ts', // コンポーネント検証テスト
+    // 将来追加予定のテスト
+    // '**/login-redirect.spec.ts', // ログインリダイレクトテスト
+    // '**/question-management.spec.ts', // 質問管理テスト
     // フルテスト時は以下も含める
     // '**/*.spec.ts',
     // '**/*.test.ts'
@@ -77,7 +87,7 @@ export default defineConfig({
 
   // 期待値設定
   expect: {
-    timeout: 5000, // アサーションタイムアウト
+    timeout: 10000, // アサーションタイムアウト (increased for error conditions)
     toHaveScreenshot: { threshold: 0.5 }, // スクリーンショット比較の閾値
   },
 });

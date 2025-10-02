@@ -15,9 +15,9 @@ export const useAuthStore = create<AuthStore>()(
 
       // Actions
       login: (user: User) => {
-        set({ 
-          user, 
-          isAuthenticated: true, 
+        set({
+          user,
+          isAuthenticated: true,
           isLoading: false,
           sessionId: null // Clear anonymous session on login
         });
@@ -50,13 +50,16 @@ export const useAuthStore = create<AuthStore>()(
       clearSession: () => {
         set({ sessionId: null });
       },
+
     }),
     {
       name: 'auth-storage',
-      // Only persist non-sensitive data for anonymous sessions
+      // For demo purposes, persist authentication state
+      // In production, this should be more restrictive for security
       partialize: (state) => ({
         sessionId: state.sessionId,
-        // Don't persist user data for security
+        user: state.user,
+        isAuthenticated: state.isAuthenticated,
       }),
     }
   )

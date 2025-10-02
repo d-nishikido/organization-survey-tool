@@ -53,12 +53,13 @@ export function ParticipationMonitor({
     });
   };
 
-  const getProgressBarColor = (rate: number): 'primary' | 'success' | 'warning' | 'danger' => {
-    if (rate >= 80) return 'success';
-    if (rate >= 60) return 'primary';
-    if (rate >= 40) return 'warning';
-    return 'danger';
-  };
+  // Utility function for progress bar color (currently unused)
+  // const getProgressBarColor = (rate: number): 'primary' | 'success' | 'warning' | 'danger' => {
+  //   if (rate >= 80) return 'success';
+  //   if (rate >= 60) return 'primary';
+  //   if (rate >= 40) return 'warning';
+  //   return 'danger';
+  // };
 
   if (loading && !stats) {
     return (

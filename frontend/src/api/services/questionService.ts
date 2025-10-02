@@ -1,10 +1,10 @@
 import { apiClient } from '../client';
-import type { 
-  QuestionResponse, 
-  QuestionList, 
-  CreateQuestionDto, 
-  UpdateQuestionDto, 
-  QuestionQuery 
+import type {
+  QuestionResponse,
+  QuestionList,
+  CreateQuestionDto,
+  UpdateQuestionDto,
+  QuestionQuery
 } from '@/types/question';
 
 export const questionService = {
@@ -13,39 +13,57 @@ export const questionService = {
    */
   async getQuestions(query: QuestionQuery = {}): Promise<QuestionList> {
     const searchParams = new URLSearchParams();
-    
+
     if (query.page) searchParams.append('page', query.page.toString());
     if (query.pageSize) searchParams.append('pageSize', query.pageSize.toString());
     if (query.category) searchParams.append('category', query.category);
     if (query.type) searchParams.append('type', query.type);
     if (query.search) searchParams.append('search', query.search);
 
-    const response = await apiClient.get(`/questions?${searchParams.toString()}`) as { data: QuestionList };
-    return response.data;
+    const response = await apiClient.get(`/api/questions?${searchParams.toString()}`) as QuestionList;
+    return response;
   },
 
   /**
    * Get a single question by ID
    */
   async getQuestion(id: number): Promise<QuestionResponse> {
-    const response = await apiClient.get(`/questions/${id}`) as { data: QuestionResponse };
-    return response.data;
+    const response = await apiClient.get(`/questions/${id}`) as QuestionResponse;
+    return response;
   },
 
   /**
    * Create a new question
    */
   async createQuestion(data: CreateQuestionDto): Promise<QuestionResponse> {
-    const response = await apiClient.post('/questions', data) as { data: QuestionResponse };
-    return response.data;
+    try {
+      const response = await apiClient.post('/questions', data) as QuestionResponse;
+      return response;
+    } catch (error: any) {
+      // If we get a 404, it might be a timing issue - retry once
+      if (error?.statusCode === 404) {
+        console.warn('Question creation failed with 404, retrying in 500ms...');
+        await new Promise(resolve => setTimeout(resolve, 500));
+
+        try {
+          const response = await apiClient.post('/questions', data) as QuestionResponse;
+          console.log('Question creation succeeded on retry');
+          return response;
+        } catch (retryError) {
+          console.error('Question creation failed on retry:', retryError);
+          throw retryError;
+        }
+      }
+      throw error;
+    }
   },
 
   /**
    * Update an existing question
    */
   async updateQuestion(id: number, data: UpdateQuestionDto): Promise<QuestionResponse> {
-    const response = await apiClient.put(`/questions/${id}`, data) as { data: QuestionResponse };
-    return response.data;
+    const response = await apiClient.put(`/questions/${id}`, data) as QuestionResponse;
+    return response;
   },
 
   /**
