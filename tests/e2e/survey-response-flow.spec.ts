@@ -81,7 +81,7 @@ test.describe('従業員調査回答フロー', () => {
     const surveyCard = page.locator("h3").locator("..").first();
     await surveyCard.waitFor({ state: 'visible' });
 
-    const startButton = surveyCard.locator('a:has-text("調査を開始")
+    const startButton = surveyCard.locator('a:has-text("調査を開始")');
     await startButton.click();
 
     // 進捗インジケーターの確認
@@ -103,7 +103,7 @@ test.describe('従業員調査回答フロー', () => {
     const surveyCard = page.locator("h3").locator("..").first();
     await surveyCard.waitFor({ state: 'visible' });
 
-    const startButton = surveyCard.locator('a:has-text("調査を開始")
+    const startButton = surveyCard.locator('a:has-text("調査を開始")');
     await startButton.click();
 
     await page.waitForURL(/\/(survey|surveys)\/\d+/);
@@ -137,7 +137,7 @@ test.describe('従業員調査回答フロー', () => {
     const surveyCard = page.locator("h3").locator("..").first();
     await surveyCard.waitFor({ state: 'visible' });
 
-    const startButton = surveyCard.locator('a:has-text("調査を開始")
+    const startButton = surveyCard.locator('a:has-text("調査を開始")');
     await startButton.click();
 
     await page.waitForURL(/\/(survey|surveys)\/\d+/);
@@ -162,7 +162,7 @@ test.describe('従業員調査回答フロー', () => {
     const surveyCard = page.locator("h3").locator("..").first();
     await surveyCard.waitFor({ state: 'visible' });
 
-    const startButton = surveyCard.locator('a:has-text("調査を開始")
+    const startButton = surveyCard.locator('a:has-text("調査を開始")');
     await startButton.click();
 
     await page.waitForURL(/\/(survey|surveys)\/\d+/);

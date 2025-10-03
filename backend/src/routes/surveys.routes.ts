@@ -251,6 +251,89 @@ export const surveysRoutes: FastifyPluginAsync = async (fastify: FastifyInstance
     },
   );
 
+  // Submit survey responses
+  fastify.post(
+    '/surveys/:id/responses',
+    {
+      preHandler: [validateParams(ParamsSchema)],
+    },
+    async (request, reply) => {
+      try {
+        const { id } = request.params as { id: number };
+        const { responses } = request.body as { responses: Record<string, any> };
+
+        // Check if survey exists
+        const surveyExists = await surveyService.surveyExists(id);
+        if (!surveyExists) {
+          return reply.code(404).send({
+            error: {
+              code: 'NOT_FOUND',
+              message: `Survey with id ${id} not found`,
+            },
+          });
+        }
+
+        // Simple direct database insertion
+        const { db } = require('../config/database');
+        const sessionToken = request.headers['x-session-id'] as string || 
+                            `anon_${Date.now()}_${Math.random().toString(36).substring(7)}`;
+        
+        // Insert responses into database
+        const responseIds: string[] = [];
+        for (const [question_id, answer] of Object.entries(responses)) {
+          // Determine response type and use appropriate column
+          let responseValue = null;
+          let responseText = null;
+          let responseData = null;
+
+          if (typeof answer === 'number') {
+            responseValue = answer;
+          } else if (typeof answer === 'string') {
+            // Check if it's a numeric string for rating responses
+            const numValue = parseInt(answer, 10);
+            if (!isNaN(numValue) && String(numValue) === answer) {
+              responseValue = numValue;
+            } else {
+              responseText = answer;
+            }
+          } else if (typeof answer === 'object') {
+            responseData = JSON.stringify(answer);
+          }
+
+          const result = await db.query(
+            `INSERT INTO survey_responses (
+              survey_id, question_id, session_token, 
+              response_value, response_text, response_data, 
+              created_at
+            )
+            VALUES ($1, $2, $3, $4, $5, $6, NOW())
+            RETURNING id`,
+            [id, parseInt(question_id), sessionToken, responseValue, responseText, responseData]
+          );
+          if (result && result.length > 0) {
+            responseIds.push(result[0].id);
+          }
+        }
+
+        return reply.code(201).send({
+          success: true,
+          message: 'Survey responses submitted successfully',
+          response_id: responseIds[0] || 'unknown',
+          submitted_at: new Date().toISOString(),
+        });
+      } catch (error) {
+        fastify.log.error('Failed to submit survey responses:', error);
+        console.error('Detailed error:', error);
+        return reply.code(500).send({
+          error: {
+            code: 'SUBMISSION_FAILED',
+            message: error instanceof Error ? error.message : 'Failed to submit responses',
+          },
+        });
+      }
+    },
+  );
+
   // Assign question to survey
   fastify.post(
     '/surveys/:id/questions',

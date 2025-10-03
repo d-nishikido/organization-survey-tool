@@ -12,7 +12,7 @@ test.describe('質問タイプ別動作テスト', () => {
     const surveyCard = page.locator("h3").locator("..").first();
     await surveyCard.waitFor({ state: 'visible' });
 
-    const startButton = surveyCard.locator('a:has-text("調査を開始")
+    const startButton = surveyCard.locator('a:has-text("調査を開始")');
     await startButton.click();
 
     // テキスト入力欄を探す
@@ -42,7 +42,7 @@ test.describe('質問タイプ別動作テスト', () => {
     const surveyCard = page.locator("h3").locator("..").first();
     await surveyCard.waitFor({ state: 'visible' });
 
-    const startButton = surveyCard.locator('a:has-text("調査を開始")
+    const startButton = surveyCard.locator('a:has-text("調査を開始")');
     await startButton.click();
 
     // テキストエリアを探す
@@ -64,7 +64,7 @@ test.describe('質問タイプ別動作テスト', () => {
     const surveyCard = page.locator("h3").locator("..").first();
     await surveyCard.waitFor({ state: 'visible' });
 
-    const startButton = surveyCard.locator('a:has-text("調査を開始")
+    const startButton = surveyCard.locator('a:has-text("調査を開始")');
     await startButton.click();
 
     // ラジオボタンを探す
@@ -93,7 +93,7 @@ test.describe('質問タイプ別動作テスト', () => {
     const surveyCard = page.locator("h3").locator("..").first();
     await surveyCard.waitFor({ state: 'visible' });
 
-    const startButton = surveyCard.locator('a:has-text("調査を開始")
+    const startButton = surveyCard.locator('a:has-text("調査を開始")');
     await startButton.click();
 
     // チェックボックスを探す
@@ -123,7 +123,7 @@ test.describe('質問タイプ別動作テスト', () => {
     const surveyCard = page.locator("h3").locator("..").first();
     await surveyCard.waitFor({ state: 'visible' });
 
-    const startButton = surveyCard.locator('a:has-text("調査を開始")
+    const startButton = surveyCard.locator('a:has-text("調査を開始")');
     await startButton.click();
 
     // 評価ボタンを探す（1-5のボタン）
@@ -172,7 +172,7 @@ test.describe('質問タイプ別動作テスト', () => {
     const surveyCard = page.locator("h3").locator("..").first();
     await surveyCard.waitFor({ state: 'visible' });
 
-    const startButton = surveyCard.locator('a:has-text("調査を開始")
+    const startButton = surveyCard.locator('a:has-text("調査を開始")');
     await startButton.click();
 
     // スライダーまたは10段階のボタン/ラジオを探す
@@ -220,7 +220,7 @@ test.describe('質問タイプ別動作テスト', () => {
     const surveyCard = page.locator("h3").locator("..").first();
     await surveyCard.waitFor({ state: 'visible' });
 
-    const startButton = surveyCard.locator('a:has-text("調査を開始")
+    const startButton = surveyCard.locator('a:has-text("調査を開始")');
     await startButton.click();
 
     // Yes/Noボタンまたはラジオボタンを探す
@@ -257,7 +257,7 @@ test.describe('質問タイプ別動作テスト', () => {
     const surveyCard = page.locator("h3").locator("..").first();
     await surveyCard.waitFor({ state: 'visible' });
 
-    const startButton = surveyCard.locator('a:has-text("調査を開始")
+    const startButton = surveyCard.locator('a:has-text("調査を開始")');
     await startButton.click();
 
     // セレクトボックスを探す
