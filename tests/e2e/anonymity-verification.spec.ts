@@ -8,7 +8,7 @@ test.describe('匿名性確保のテスト', () => {
     const surveyCard = page.locator("h3").locator("..").first();
     await surveyCard.waitFor({ state: 'visible' });
 
-    const startButton = surveyCard.locator('a:has-text("調査を開始")
+    const startButton = surveyCard.locator('a:has-text("調査を開始")');
     await startButton.click();
 
     // 個人情報に関する入力欄が存在しないことを確認
@@ -52,7 +52,7 @@ test.describe('匿名性確保のテスト', () => {
     const surveyCard = page.locator("h3").locator("..").first();
     await surveyCard.waitFor({ state: 'visible' });
 
-    const startButton = surveyCard.locator('a:has-text("調査を開始")
+    const startButton = surveyCard.locator('a:has-text("調査を開始")');
     await startButton.click();
 
     // 質問に回答
@@ -100,7 +100,7 @@ test.describe('匿名性確保のテスト', () => {
     const surveyCard = page.locator("h3").locator("..").first();
     await surveyCard.waitFor({ state: 'visible' });
 
-    const startButton = surveyCard.locator('a:has-text("調査を開始")
+    const startButton = surveyCard.locator('a:has-text("調査を開始")');
     await startButton.click();
 
     // LocalStorageの内容を取得
@@ -144,7 +144,7 @@ test.describe('匿名性確保のテスト', () => {
     const surveyCard = page.locator("h3").locator("..").first();
     await surveyCard.waitFor({ state: 'visible' });
 
-    const startButton = surveyCard.locator('a:has-text("調査を開始")
+    const startButton = surveyCard.locator('a:has-text("調査を開始")');
     await startButton.click();
 
     // SessionStorageの内容を取得
@@ -185,7 +185,7 @@ test.describe('匿名性確保のテスト', () => {
     const surveyCard = page.locator("h3").locator("..").first();
     await surveyCard.waitFor({ state: 'visible' });
 
-    const startButton = surveyCard.locator('a:has-text("調査を開始")
+    const startButton = surveyCard.locator('a:has-text("調査を開始")');
     await startButton.click();
 
     // Cookieを取得
@@ -234,7 +234,7 @@ test.describe('匿名性確保のテスト', () => {
     // 調査開始画面でも匿名性の説明があるか確認
     const surveyCard = page.locator("h3").locator("..").first();
     if (await surveyCard.isVisible({ timeout: 5000 }).catch(() => false)) {
-      const startButton = surveyCard.locator('a:has-text("調査を開始")
+      const startButton = surveyCard.locator('a:has-text("調査を開始")');
       await startButton.click();
 
       // 調査画面でも匿名性に関する説明があるか確認
@@ -259,7 +259,7 @@ test.describe('匿名性確保のテスト', () => {
     const surveyCard = page.locator("h3").locator("..").first();
     await surveyCard.waitFor({ state: 'visible' });
 
-    const startButton = surveyCard.locator('a:has-text("調査を開始")
+    const startButton = surveyCard.locator('a:has-text("調査を開始")');
     await startButton.click();
 
     // 質問に回答
@@ -281,7 +281,7 @@ test.describe('匿名性確保のテスト', () => {
     const newSurveyCard = page.locator("h3").locator("..").first();
     await newSurveyCard.waitFor({ state: 'visible' });
 
-    const newStartButton = newSurveyCard.locator('a:has-text("調査を開始")
+    const newStartButton = newSurveyCard.locator('a:has-text("調査を開始")');
     await newStartButton.click();
 
     // 前の回答が残っていないことを確認
