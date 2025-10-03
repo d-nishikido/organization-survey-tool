@@ -273,7 +273,7 @@ export const surveysRoutes: FastifyPluginAsync = async (fastify: FastifyInstance
           });
         }
 
-        // Simple direct database insertion for now
+        // Simple direct database insertion
         const { db } = require('../config/database');
         const sessionToken = request.headers['x-session-id'] as string || 
                             `anon_${Date.now()}_${Math.random().toString(36).substring(7)}`;
@@ -281,11 +281,34 @@ export const surveysRoutes: FastifyPluginAsync = async (fastify: FastifyInstance
         // Insert responses into database
         const responseIds: string[] = [];
         for (const [question_id, answer] of Object.entries(responses)) {
+          // Determine response type and use appropriate column
+          let responseValue = null;
+          let responseText = null;
+          let responseData = null;
+
+          if (typeof answer === 'number') {
+            responseValue = answer;
+          } else if (typeof answer === 'string') {
+            // Check if it's a numeric string for rating responses
+            const numValue = parseInt(answer, 10);
+            if (!isNaN(numValue) && String(numValue) === answer) {
+              responseValue = numValue;
+            } else {
+              responseText = answer;
+            }
+          } else if (typeof answer === 'object') {
+            responseData = JSON.stringify(answer);
+          }
+
           const result = await db.query(
-            `INSERT INTO survey_responses (survey_id, question_id, session_token, response_value, created_at)
-             VALUES ($1, $2, $3, $4, NOW())
-             RETURNING id`,
-            [id, parseInt(question_id), sessionToken, String(answer)]
+            `INSERT INTO survey_responses (
+              survey_id, question_id, session_token, 
+              response_value, response_text, response_data, 
+              created_at
+            )
+            VALUES ($1, $2, $3, $4, $5, $6, NOW())
+            RETURNING id`,
+            [id, parseInt(question_id), sessionToken, responseValue, responseText, responseData]
           );
           if (result && result.length > 0) {
             responseIds.push(result[0].id);
