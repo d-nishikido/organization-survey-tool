@@ -15,6 +15,7 @@ import { questionsRoutes } from './routes/questions.routes';
 import { responsesRoutes } from './routes/responses.routes';
 import { analyticsRoutes } from './routes/analytics.routes';
 import { operationsRoutes } from './routes/operations.routes';
+import { adminRoutes } from './routes/admin.routes';
 import { loggingMiddleware } from './middleware/logging';
 import { errorHandler } from './middleware/errorHandler';
 
@@ -68,6 +69,7 @@ async function buildServer(): Promise<typeof server> {
         { name: 'surveys', description: 'Survey management endpoints' },
         { name: 'responses', description: 'Survey response endpoints' },
         { name: 'analytics', description: 'Analytics endpoints' },
+        { name: 'admin', description: 'Admin dashboard endpoints' },
       ],
     },
   });
@@ -94,6 +96,7 @@ async function buildServer(): Promise<typeof server> {
   await server.register(operationsRoutes, { prefix: '/api' });
   await server.register(questionsRoutes, { prefix: '/api' });
   await server.register(responsesRoutes, { prefix: '/api' });
+  await server.register(adminRoutes, { prefix: '/api' });
   // await server.register(analyticsRoutes, { prefix: '/api' });
 
   return server;
