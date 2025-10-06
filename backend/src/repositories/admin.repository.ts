@@ -37,7 +37,7 @@ export class AdminRepository extends BaseRepository<any> {
         SELECT
           COUNT(DISTINCT session_token) as total_responses,
           AVG(
-            EXTRACT(EPOCH FROM (updated_at - created_at)) / 60
+            EXTRACT(EPOCH FROM (submitted_at - created_at)) / 60
           )::numeric(10,1) as avg_completion_time
         FROM survey_responses
         WHERE submitted_at IS NOT NULL
