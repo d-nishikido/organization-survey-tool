@@ -35,7 +35,11 @@ export class AdminRepository extends BaseRepository<any> {
       ),
       response_stats AS (
         SELECT
-          COUNT(DISTINCT session_token) as total_responses,
+          COUNT(DISTINCT session_token) as total_responses
+        FROM survey_responses
+      ),
+      completion_stats AS (
+        SELECT
           AVG(
             EXTRACT(EPOCH FROM (completed_at - started_at)) / 60
           )::numeric(10,1) as avg_completion_time
@@ -50,9 +54,10 @@ export class AdminRepository extends BaseRepository<any> {
           THEN (rs.total_responses::float / ss.total_surveys * 100)::numeric(10,1)
           ELSE 0
         END as response_rate,
-        COALESCE(rs.avg_completion_time, 0) as avg_completion_time
+        COALESCE(cs.avg_completion_time, 0) as avg_completion_time
       FROM survey_stats ss
       CROSS JOIN response_stats rs
+      CROSS JOIN completion_stats cs
     `;
 
     const result = await this.queryOne<AdminStatsData>(query);
@@ -99,19 +104,18 @@ export class AdminRepository extends BaseRepository<any> {
           'responses_received' as type,
           COUNT(DISTINCT session_token)::text || '件の新しい回答が収集されました' as title,
           CASE
-            WHEN MAX(completed_at) > NOW() - INTERVAL '1 hour' THEN
-              EXTRACT(EPOCH FROM (NOW() - MAX(completed_at)))::int / 60 || '分前'
-            WHEN MAX(completed_at) > NOW() - INTERVAL '1 day' THEN
-              EXTRACT(EPOCH FROM (NOW() - MAX(completed_at)))::int / 3600 || '時間前'
+            WHEN MAX(created_at) > NOW() - INTERVAL '1 hour' THEN
+              EXTRACT(EPOCH FROM (NOW() - MAX(created_at)))::int / 60 || '分前'
+            WHEN MAX(created_at) > NOW() - INTERVAL '1 day' THEN
+              EXTRACT(EPOCH FROM (NOW() - MAX(created_at)))::int / 3600 || '時間前'
             ELSE
-              EXTRACT(EPOCH FROM (NOW() - MAX(completed_at)))::int / 86400 || '日前'
+              EXTRACT(EPOCH FROM (NOW() - MAX(created_at)))::int / 86400 || '日前'
           END as description,
-          MAX(completed_at) as timestamp,
+          MAX(created_at) as timestamp,
           '✅' as icon
-        FROM survey_progress
-        WHERE is_completed = true AND completed_at IS NOT NULL
+        FROM survey_responses
         GROUP BY survey_id
-        ORDER BY MAX(completed_at) DESC
+        ORDER BY MAX(created_at) DESC
         LIMIT $1
       )
       SELECT * FROM (
