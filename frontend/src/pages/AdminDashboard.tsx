@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { AdminLayout, AdminSection, PermissionBadge } from '@/components/admin';
 import { useAuth } from '@/contexts/AuthContext';
 import Card from '@/components/ui/Card';
@@ -7,6 +8,7 @@ import AdminService, { AdminStats, RecentActivity } from '@/api/services/adminSe
 
 export function AdminDashboard(): JSX.Element {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [recentActivity, setRecentActivity] = useState<RecentActivity[]>([]);
   const [loading, setLoading] = useState(true);
@@ -211,7 +213,10 @@ export function AdminDashboard(): JSX.Element {
           description="よく使用される管理機能"
         >
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            <button className="relative p-6 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors text-left">
+            <button
+              onClick={() => navigate('/admin/surveys/create')}
+              className="relative p-6 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors text-left"
+            >
               <div className="flex items-center">
                 <span className="text-2xl mr-3">📝</span>
                 <div>
@@ -225,7 +230,10 @@ export function AdminDashboard(): JSX.Element {
               </div>
             </button>
 
-            <button className="relative p-6 bg-green-50 border border-green-200 rounded-lg hover:bg-green-100 transition-colors text-left">
+            <button
+              onClick={() => navigate('/admin/analytics')}
+              className="relative p-6 bg-green-50 border border-green-200 rounded-lg hover:bg-green-100 transition-colors text-left"
+            >
               <div className="flex items-center">
                 <span className="text-2xl mr-3">📊</span>
                 <div>
@@ -239,7 +247,10 @@ export function AdminDashboard(): JSX.Element {
               </div>
             </button>
 
-            <button className="relative p-6 bg-purple-50 border border-purple-200 rounded-lg hover:bg-purple-100 transition-colors text-left">
+            <button
+              onClick={() => navigate('/admin/settings')}
+              className="relative p-6 bg-purple-50 border border-purple-200 rounded-lg hover:bg-purple-100 transition-colors text-left"
+            >
               <div className="flex items-center">
                 <span className="text-2xl mr-3">⚙️</span>
                 <div>
