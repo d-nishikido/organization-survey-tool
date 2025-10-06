@@ -2,6 +2,7 @@ import { ConnectionPool, createOptimizedPoolConfig } from '../database/connectio
 import { ResponseService } from './response.service';
 import { SessionService } from './session.service';
 import { AnalyticsService } from './analytics.service';
+import { CacheManager } from './cache-manager';
 // TODO: Fix ReportService dependencies (puppeteer, exceljs)
 // import { ReportService } from './report.service';
 import { logger } from '../utils/logger';
@@ -12,6 +13,7 @@ import { logger } from '../utils/logger';
 export class ServiceContainer {
   private static instance: ServiceContainer;
   private connectionPool!: ConnectionPool;
+  private cacheManager!: CacheManager;
   private responseService!: ResponseService;
   private sessionService!: SessionService;
   private analyticsService!: AnalyticsService;
@@ -54,11 +56,12 @@ export class ServiceContainer {
       }
 
       // Initialize services
+      this.cacheManager = new CacheManager(this.connectionPool);
       this.sessionService = new SessionService(this.connectionPool);
       this.responseService = new ResponseService({
         pool: this.connectionPool,
       });
-      this.analyticsService = new AnalyticsService(this.connectionPool);
+      this.analyticsService = new AnalyticsService(this.connectionPool, this.cacheManager);
       // TODO: Fix ReportService dependencies (puppeteer, exceljs)
       // this.reportService = new ReportService(this.connectionPool);
 
@@ -93,6 +96,14 @@ export class ServiceContainer {
   getSessionService(): SessionService {
     this.ensureInitialized();
     return this.sessionService;
+  }
+
+  /**
+   * Get cache manager
+   */
+  getCacheManager(): CacheManager {
+    this.ensureInitialized();
+    return this.cacheManager;
   }
 
   /**
@@ -147,7 +158,7 @@ export class ServiceContainer {
   }> {
     try {
       const databaseHealthy = this.connectionPool ? await this.connectionPool.isHealthy() : false;
-      const servicesHealthy = this.isInitialized && !!this.responseService && !!this.sessionService && !!this.analyticsService && !!this.reportService;
+      const servicesHealthy = this.isInitialized && !!this.responseService && !!this.sessionService && !!this.analyticsService && !!this.cacheManager;
 
       return {
         database: databaseHealthy,

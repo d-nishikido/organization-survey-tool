@@ -94,8 +94,8 @@ export class AnalyticsService {
    */
   static async getSurveySummary(
     surveyId: number
-  ): Promise<ApiResponse<SurveySummary>> {
-    return apiClient.get<ApiResponse<SurveySummary>>(`${this.BASE_PATH}/summary`, {
+  ): Promise<SurveySummary> {
+    return apiClient.get<SurveySummary>(`${this.BASE_PATH}/summary`, {
       params: { survey_id: surveyId },
     });
   }
@@ -106,8 +106,8 @@ export class AnalyticsService {
   static async getCategoryAnalysis(
     surveyId: number,
     categoryCode?: string
-  ): Promise<ApiResponse<{ categories: CategoryAnalysis[] }>> {
-    return apiClient.get<ApiResponse<{ categories: CategoryAnalysis[] }>>(
+  ): Promise<{ categories: CategoryAnalysis[] }> {
+    return apiClient.get<{ categories: CategoryAnalysis[] }>(
       `${this.BASE_PATH}/categories`,
       {
         params: {
@@ -127,8 +127,8 @@ export class AnalyticsService {
       category?: string;
       period?: 'daily' | 'weekly' | 'monthly' | 'quarterly';
     }
-  ): Promise<ApiResponse<TrendData>> {
-    return apiClient.get<ApiResponse<TrendData>>(`${this.BASE_PATH}/trends`, {
+  ): Promise<TrendData> {
+    return apiClient.get<TrendData>(`${this.BASE_PATH}/trends`, {
       params: {
         survey_id: params.surveyId,
         category: params.category,

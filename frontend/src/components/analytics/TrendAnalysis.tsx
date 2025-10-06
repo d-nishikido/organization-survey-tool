@@ -54,6 +54,16 @@ const TrendAnalysis: React.FC<TrendAnalysisProps> = ({ data, categoryData }) => 
   };
 
   const renderInsights = () => {
+    // Empty array check
+    if (!categoryData || categoryData.length === 0) {
+      return (
+        <div className="bg-gray-50 p-4 rounded-lg">
+          <h4 className="text-sm font-medium text-gray-900 mb-3">分析インサイト</h4>
+          <p className="text-sm text-gray-500">データが不足しています</p>
+        </div>
+      );
+    }
+
     const totalResponses = categoryData.reduce((sum, cat) => sum + cat.responseCount, 0);
     const highestScoreCategory = categoryData.reduce((max, cat) => 
       cat.averageScore > max.averageScore ? cat : max
@@ -92,6 +102,11 @@ const TrendAnalysis: React.FC<TrendAnalysisProps> = ({ data, categoryData }) => 
   };
 
   const renderRecommendations = () => {
+    // Empty array check
+    if (!categoryData || categoryData.length === 0) {
+      return null;
+    }
+
     const lowestScoreCategory = categoryData.reduce((min, cat) => 
       cat.averageScore < min.averageScore ? cat : min
     );

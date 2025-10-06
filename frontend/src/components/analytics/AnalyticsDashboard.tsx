@@ -76,8 +76,7 @@ const AnalyticsDashboard: React.FC = () => {
     ['surveySummary', filters.surveyId],
     async () => {
       if (!filters.surveyId) return null;
-      const response = await AnalyticsService.getSurveySummary(filters.surveyId);
-      return response.data;
+      return await AnalyticsService.getSurveySummary(filters.surveyId);
     },
     {
       enabled: !!filters.surveyId,
@@ -91,11 +90,10 @@ const AnalyticsDashboard: React.FC = () => {
     ['categoryAnalysis', filters.surveyId, filters.category],
     async () => {
       if (!filters.surveyId) return null;
-      const response = await AnalyticsService.getCategoryAnalysis(
+      return await AnalyticsService.getCategoryAnalysis(
         filters.surveyId,
         filters.category
       );
-      return response.data;
     },
     {
       enabled: !!filters.surveyId,
@@ -107,12 +105,11 @@ const AnalyticsDashboard: React.FC = () => {
   const { data: trendData, isLoading: trendLoading } = useQuery(
     ['trendAnalysis', filters.surveyId, filters.category, filters.period],
     async () => {
-      const response = await AnalyticsService.getTrendAnalysis({
+      return await AnalyticsService.getTrendAnalysis({
         surveyId: filters.surveyId,
         category: filters.category,
         period: filters.period,
       });
-      return response.data;
     },
     {
       staleTime: 5 * 60 * 1000,
@@ -276,7 +273,7 @@ const AnalyticsDashboard: React.FC = () => {
       category: cat.category_code,
       averageScore: cat.average_score,
       responseCount: cat.response_count,
-      distribution: cat.distribution.reduce((acc, dist) => {
+      distribution: (cat.distribution || []).reduce((acc, dist) => {
         acc[dist.range] = dist.count;
         return acc;
       }, {} as Record<string, number>),
