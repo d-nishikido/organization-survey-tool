@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { useQuery } from 'react-query';
 import { AdminLayout } from '@/components/admin';
 import { Card, Loading } from '@/components/ui';
 
-import { analyticsService } from '@/api/services';
+import { AnalyticsService } from '@/api/services/analyticsService';
 import AnalyticsCards from './AnalyticsCards';
 import ChartComponents from './ChartComponents';
 import FilterPanel from './FilterPanel';
@@ -42,9 +43,9 @@ interface AnalyticsData {
 }
 
 interface FilterState {
-  period: 'week' | 'month' | 'quarter' | 'year';
-  category?: 'engagement' | 'satisfaction' | 'leadership' | 'culture' | 'growth' | 'worklife' | 'communication' | 'other';
-  surveyId?: string;
+  period: 'daily' | 'weekly' | 'monthly' | 'quarterly';
+  category?: string;
+  surveyId?: number;
   startDate?: string;
   endDate?: string;
 }
@@ -52,99 +53,60 @@ interface FilterState {
 const AnalyticsDashboard: React.FC = () => {
   const [searchParams] = useSearchParams();
   const [filters, setFilters] = useState<FilterState>({
-    period: 'month',
-    surveyId: searchParams.get('survey') || undefined,
+    period: 'monthly',
+    surveyId: searchParams.get('survey') ? parseInt(searchParams.get('survey')!) : undefined,
   });
 
-  const [dashboardData, setDashboardData] = useState<AnalyticsData | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  // Fetch survey summary
+  const { data: summaryData, isLoading: summaryLoading, error: summaryError, refetch: refetchSummary } = useQuery(
+    ['surveySummary', filters.surveyId],
+    async () => {
+      if (!filters.surveyId) return null;
+      const response = await AnalyticsService.getSurveySummary(filters.surveyId);
+      return response.data;
+    },
+    {
+      enabled: !!filters.surveyId,
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      refetchInterval: 5 * 60 * 1000, // Refetch every 5 minutes
+    }
+  );
 
-  useEffect(() => {
-    const loadDashboardData = async () => {
-      try {
-        // Simulate API call - replace with actual service calls
-        const mockData: AnalyticsData = {
-          summary: {
-            totalSurveys: 12,
-            completedSurveys: 8,
-            averageCompletionRate: 78.3,
-            responseRate: 85.2,
-            totalResponses: 1247,
-            averageTimeToComplete: 12,
-          },
-          trends: {
-            labels: ['1月', '2月', '3月', '4月', '5月', '6月'],
-            datasets: [
-              {
-                label: '回答数',
-                data: [120, 150, 180, 220, 200, 250],
-                color: '#3B82F6',
-              },
-              {
-                label: '完了率',
-                data: [65, 70, 75, 80, 78, 85],
-                color: '#10B981',
-              },
-            ],
-          },
-          categoryAnalysis: [
-            {
-              category: 'engagement',
-              averageScore: 4.2,
-              responseCount: 856,
-              distribution: { '1': 45, '2': 120, '3': 350, '4': 250, '5': 91 },
-            },
-            {
-              category: 'satisfaction',
-              averageScore: 3.8,
-              responseCount: 742,
-              distribution: { '1': 62, '2': 156, '3': 298, '4': 180, '5': 46 },
-            },
-            {
-              category: 'leadership',
-              averageScore: 3.5,
-              responseCount: 689,
-              distribution: { '1': 89, '2': 178, '3': 267, '4': 125, '5': 30 },
-            },
-          ],
-          recentActivity: [
-            {
-              id: '1',
-              type: 'survey_created',
-              description: '新しい調査「2024年度エンゲージメント調査」が作成されました',
-              timestamp: '2024-01-15T10:30:00Z',
-            },
-            {
-              id: '2',
-              type: 'response_received',
-              description: '25件の新しい回答が収集されました',
-              timestamp: '2024-01-15T08:15:00Z',
-            },
-            {
-              id: '3',
-              type: 'analysis_generated',
-              description: '週次分析レポートが生成されました',
-              timestamp: '2024-01-14T16:45:00Z',
-            },
-          ],
-        };
+  // Fetch category analysis
+  const { data: categoryData, isLoading: categoryLoading } = useQuery(
+    ['categoryAnalysis', filters.surveyId, filters.category],
+    async () => {
+      if (!filters.surveyId) return null;
+      const response = await AnalyticsService.getCategoryAnalysis(
+        filters.surveyId,
+        filters.category
+      );
+      return response.data;
+    },
+    {
+      enabled: !!filters.surveyId,
+      staleTime: 5 * 60 * 1000,
+    }
+  );
 
-        setLoading(true);
-        setError(null);
-        // Simulate API delay
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        setDashboardData(mockData);
-        setLoading(false);
-      } catch (err) {
-        setLoading(false);
-        setError('Failed to load dashboard data');
-        console.error('Failed to load dashboard data:', err);
-      }
-    };
+  // Fetch trend analysis
+  const { data: trendData, isLoading: trendLoading } = useQuery(
+    ['trendAnalysis', filters.surveyId, filters.category, filters.period],
+    async () => {
+      const response = await AnalyticsService.getTrendAnalysis({
+        surveyId: filters.surveyId,
+        category: filters.category,
+        period: filters.period,
+      });
+      return response.data;
+    },
+    {
+      staleTime: 5 * 60 * 1000,
+    }
+  );
 
-    loadDashboardData();
-  }, [filters]);
+  const loading = summaryLoading || categoryLoading || trendLoading;
+  const error = summaryError ? 'Failed to load dashboard data' : null;
 
   const handleFilterChange = (newFilters: Partial<FilterState>) => {
     setFilters(prev => ({ ...prev, ...newFilters }));
@@ -153,10 +115,37 @@ const AnalyticsDashboard: React.FC = () => {
   const handleExport = async (format: 'csv' | 'excel' | 'pdf') => {
     try {
       if (filters.surveyId) {
-        // Convert pdf to json for compatibility with existing service
-        const exportFormat = format === 'pdf' ? 'json' : format;
-        await analyticsService.exportData(filters.surveyId, exportFormat);
-        // Handle download
+        // Use the new report generation API
+        const response = await AnalyticsService.generateReport({
+          surveyId: filters.surveyId,
+          format: format === 'pdf' ? 'pdf' : format,
+          template: 'summary',
+          options: {
+            includeRawData: true,
+            includeCharts: true,
+          },
+        });
+        
+        // Poll for completion and download
+        const reportId = response.data.reportId;
+        const pollInterval = setInterval(async () => {
+          const statusResponse = await AnalyticsService.getReportStatus(reportId);
+          if (statusResponse.data.status === 'completed') {
+            clearInterval(pollInterval);
+            const blob = await AnalyticsService.downloadReport(reportId);
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `analytics-report.${format === 'excel' ? 'xlsx' : format}`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+          } else if (statusResponse.data.status === 'failed') {
+            clearInterval(pollInterval);
+            console.error('Report generation failed:', statusResponse.data.error);
+          }
+        }, 3000);
       }
     } catch (err) {
       console.error('Export failed:', err);
@@ -173,15 +162,62 @@ const AnalyticsDashboard: React.FC = () => {
     );
   }
 
-  if (error || !dashboardData) {
+  if (error || (!summaryData && filters.surveyId)) {
     return (
       <AdminLayout>
         <div className="text-center py-8">
           <p className="text-red-600">ダッシュボードデータの読み込みに失敗しました</p>
+          <button 
+            onClick={() => refetchSummary()}
+            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+          >
+            再試行
+          </button>
         </div>
       </AdminLayout>
     );
   }
+
+  // Show message if no survey selected
+  if (!filters.surveyId || !summaryData) {
+    return (
+      <AdminLayout>
+        <div className="text-center py-8">
+          <p className="text-gray-600">調査を選択してください</p>
+        </div>
+      </AdminLayout>
+    );
+  }
+
+  // Transform data for display
+  const dashboardData: AnalyticsData = {
+    summary: {
+      totalSurveys: 1,
+      completedSurveys: summaryData.completion_rate >= 100 ? 1 : 0,
+      averageCompletionRate: summaryData.completion_rate,
+      responseRate: summaryData.completion_rate,
+      totalResponses: summaryData.total_responses,
+      averageTimeToComplete: 12, // Mock data - not available from API
+    },
+    trends: {
+      labels: trendData?.data_points.map(p => p.date) || [],
+      datasets: [{
+        label: 'スコア',
+        data: trendData?.data_points.map(p => p.value) || [],
+        color: '#3B82F6',
+      }],
+    },
+    categoryAnalysis: categoryData?.categories.map(cat => ({
+      category: cat.category_code,
+      averageScore: cat.average_score,
+      responseCount: cat.response_count,
+      distribution: cat.distribution.reduce((acc, dist) => {
+        acc[dist.range] = dist.count;
+        return acc;
+      }, {} as Record<string, number>),
+    })) || [],
+    recentActivity: [], // Mock data - not available from API
+  };
 
   return (
     <AdminLayout>

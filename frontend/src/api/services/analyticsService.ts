@@ -39,8 +39,103 @@ interface SurveyAnalytics {
 }
 
 
+interface SurveySummary {
+  survey_id: number;
+  survey_title: string;
+  total_responses: number;
+  completion_rate: number;
+  average_scores: Record<string, number>;
+  response_distribution: Record<string, number>;
+  generated_at: string;
+}
+
+interface CategoryAnalysis {
+  category_code: string;
+  category_name: string;
+  response_count: number;
+  average_score: number;
+  statistics: {
+    mean: number;
+    median: number;
+    standardDeviation: number;
+    variance: number;
+    min: number;
+    max: number;
+    count: number;
+    quartiles: {
+      q1: number;
+      q2: number;
+      q3: number;
+    };
+  };
+  distribution: Array<{
+    range: string;
+    count: number;
+    percentage: number;
+  }>;
+}
+
+interface TrendData {
+  period: string;
+  data_points: Array<{
+    date: string;
+    value: number;
+    count: number;
+  }>;
+  trend: 'increasing' | 'decreasing' | 'stable';
+  change_percentage: number;
+}
+
 export class AnalyticsService {
   private static readonly BASE_PATH = '/api/analytics';
+
+/**
+   * Get survey summary with analytics cache
+   */
+  static async getSurveySummary(
+    surveyId: number
+  ): Promise<ApiResponse<SurveySummary>> {
+    return apiClient.get<ApiResponse<SurveySummary>>(`${this.BASE_PATH}/summary`, {
+      params: { survey_id: surveyId },
+    });
+  }
+
+  /**
+   * Get category analysis
+   */
+  static async getCategoryAnalysis(
+    surveyId: number,
+    categoryCode?: string
+  ): Promise<ApiResponse<{ categories: CategoryAnalysis[] }>> {
+    return apiClient.get<ApiResponse<{ categories: CategoryAnalysis[] }>>(
+      `${this.BASE_PATH}/categories`,
+      {
+        params: {
+          survey_id: surveyId,
+          category: categoryCode,
+        },
+      }
+    );
+  }
+
+  /**
+   * Get trend analysis
+   */
+  static async getTrendAnalysis(
+    params: {
+      surveyId?: number;
+      category?: string;
+      period?: 'daily' | 'weekly' | 'monthly' | 'quarterly';
+    }
+  ): Promise<ApiResponse<TrendData>> {
+    return apiClient.get<ApiResponse<TrendData>>(`${this.BASE_PATH}/trends`, {
+      params: {
+        survey_id: params.surveyId,
+        category: params.category,
+        period: params.period || 'monthly',
+      },
+    });
+  }
 
   /**
    * Get dashboard data
