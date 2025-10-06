@@ -214,7 +214,7 @@ export function AdminDashboard(): JSX.Element {
         >
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             <button
-              onClick={() => navigate('/admin/surveys/create')}
+              onClick={() => navigate('/admin/surveys/new')}
               className="relative p-6 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors text-left"
             >
               <div className="flex items-center">
@@ -248,17 +248,17 @@ export function AdminDashboard(): JSX.Element {
             </button>
 
             <button
-              onClick={() => navigate('/admin/settings')}
+              onClick={() => navigate('/admin/surveys')}
               className="relative p-6 bg-purple-50 border border-purple-200 rounded-lg hover:bg-purple-100 transition-colors text-left"
             >
               <div className="flex items-center">
-                <span className="text-2xl mr-3">⚙️</span>
+                <span className="text-2xl mr-3">📋</span>
                 <div>
                   <h3 className="text-sm font-medium text-purple-900">
-                    システム設定
+                    調査管理
                   </h3>
                   <p className="text-sm text-purple-700 mt-1">
-                    各種設定の管理
+                    調査の一覧と管理
                   </p>
                 </div>
               </div>
