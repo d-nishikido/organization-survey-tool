@@ -187,6 +187,32 @@ export class ConnectionPool {
     return result[0] || null;
   }
 
+  /**
+   * Execute a query and return the full QueryResult (including rowCount)
+   */
+  async execute(text: string, params?: any[]): Promise<any> {
+    const start = Date.now();
+    const client = await this.connect();
+
+    try {
+      const result = await client.query(text, params);
+      const duration = Date.now() - start;
+
+      logger.debug('Executed query', {
+        query: text.substring(0, 100) + (text.length > 100 ? '...' : ''),
+        duration,
+        rows: result.rowCount,
+      });
+
+      return result;
+    } catch (error) {
+      logger.error('Database query error', { query: text, error });
+      throw error;
+    } finally {
+      client.release();
+    }
+  }
+
   getMetrics(): PoolMetrics {
     this.updateMetrics();
     return { ...this.metrics };

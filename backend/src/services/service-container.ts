@@ -2,7 +2,9 @@ import { ConnectionPool, createOptimizedPoolConfig } from '../database/connectio
 import { ResponseService } from './response.service';
 import { SessionService } from './session.service';
 import { AnalyticsService } from './analytics.service';
-import { ReportService } from './report.service';
+import { CacheManager } from './cache-manager';
+// TODO: Fix ReportService dependencies (puppeteer, exceljs)
+// import { ReportService } from './report.service';
 import { logger } from '../utils/logger';
 
 /**
@@ -11,10 +13,11 @@ import { logger } from '../utils/logger';
 export class ServiceContainer {
   private static instance: ServiceContainer;
   private connectionPool!: ConnectionPool;
+  private cacheManager!: CacheManager;
   private responseService!: ResponseService;
   private sessionService!: SessionService;
   private analyticsService!: AnalyticsService;
-  private reportService!: ReportService;
+  // private reportService!: ReportService;
   private isInitialized = false;
 
   private constructor() {
@@ -53,12 +56,14 @@ export class ServiceContainer {
       }
 
       // Initialize services
+      this.cacheManager = new CacheManager(this.connectionPool);
       this.sessionService = new SessionService(this.connectionPool);
       this.responseService = new ResponseService({
         pool: this.connectionPool,
       });
-      this.analyticsService = new AnalyticsService(this.connectionPool);
-      this.reportService = new ReportService(this.connectionPool);
+      this.analyticsService = new AnalyticsService(this.connectionPool, this.cacheManager);
+      // TODO: Fix ReportService dependencies (puppeteer, exceljs)
+      // this.reportService = new ReportService(this.connectionPool);
 
       this.isInitialized = true;
       logger.info('Service container initialized successfully');
@@ -94,6 +99,14 @@ export class ServiceContainer {
   }
 
   /**
+   * Get cache manager
+   */
+  getCacheManager(): CacheManager {
+    this.ensureInitialized();
+    return this.cacheManager;
+  }
+
+  /**
    * Get analytics service
    */
   getAnalyticsService(): AnalyticsService {
@@ -104,10 +117,11 @@ export class ServiceContainer {
   /**
    * Get report service
    */
-  getReportService(): ReportService {
-    this.ensureInitialized();
-    return this.reportService;
-  }
+  // TODO: Fix ReportService dependencies (puppeteer, exceljs)
+  // getReportService(): ReportService {
+  //   this.ensureInitialized();
+  //   return this.reportService;
+  // }
 
   /**
    * Graceful shutdown of all services
@@ -144,7 +158,7 @@ export class ServiceContainer {
   }> {
     try {
       const databaseHealthy = this.connectionPool ? await this.connectionPool.isHealthy() : false;
-      const servicesHealthy = this.isInitialized && !!this.responseService && !!this.sessionService && !!this.analyticsService && !!this.reportService;
+      const servicesHealthy = this.isInitialized && !!this.responseService && !!this.sessionService && !!this.analyticsService && !!this.cacheManager;
 
       return {
         database: databaseHealthy,

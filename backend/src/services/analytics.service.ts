@@ -1,6 +1,7 @@
 import { ConnectionPool } from '../database/connection-pool';
 import { StatisticsUtil, BasicStatistics, TrendAnalysis } from '../utils/statistics';
 import { logger } from '../utils/logger';
+import { CacheManager } from './cache-manager';
 
 export interface SurveySummary {
   survey_id: number;
@@ -28,18 +29,15 @@ export interface TrendData {
   change_percentage: number;
 }
 
-export interface AnalyticsCache {
-  id?: number;
-  survey_id: number;
-  metric_name: string;
-  metric_data: any;
-  category_filter?: string;
-  generated_at?: string;
-  expires_at?: string;
-}
-
 export class AnalyticsService {
-  constructor(private connectionPool: ConnectionPool) {}
+  private cacheManager: CacheManager;
+
+  constructor(
+    private connectionPool: ConnectionPool,
+    cacheManager?: CacheManager
+  ) {
+    this.cacheManager = cacheManager || new CacheManager(connectionPool);
+  }
 
   /**
    * Get analytics summary for a survey
@@ -48,10 +46,10 @@ export class AnalyticsService {
     try {
       // Check cache first
       if (useCache) {
-        const cachedResult = await this.getCachedMetric(surveyId, 'summary');
-        if (cachedResult) {
+        const cachedEntry = await this.cacheManager.get(surveyId, 'summary');
+        if (cachedEntry) {
           logger.debug('Returning cached survey summary', { surveyId });
-          return cachedResult.metric_data;
+          return cachedEntry.metric_data as SurveySummary;
         }
       }
 
@@ -60,7 +58,7 @@ export class AnalyticsService {
 
       // Cache the result
       if (useCache) {
-        await this.cacheMetric(surveyId, 'summary', summary);
+        await this.cacheManager.set(surveyId, 'summary', summary);
       }
 
       return summary;
@@ -83,10 +81,10 @@ export class AnalyticsService {
 
       // Check cache first
       if (useCache) {
-        const cachedResult = await this.getCachedMetric(surveyId, cacheKey, categoryCode);
-        if (cachedResult) {
+        const cachedEntry = await this.cacheManager.get(surveyId, cacheKey, categoryCode || null);
+        if (cachedEntry) {
           logger.debug('Returning cached category analysis', { surveyId, categoryCode });
-          return cachedResult.metric_data;
+          return cachedEntry.metric_data as CategoryAnalysis[];
         }
       }
 
@@ -95,7 +93,7 @@ export class AnalyticsService {
 
       // Cache the result
       if (useCache) {
-        await this.cacheMetric(surveyId, cacheKey, analysis, categoryCode);
+        await this.cacheManager.set(surveyId, cacheKey, analysis, categoryCode || null);
       }
 
       return analysis;
@@ -111,23 +109,29 @@ export class AnalyticsService {
   async getTrendAnalysis(
     surveyId?: number,
     categoryCode?: string,
-    period: 'daily' | 'weekly' | 'monthly' | 'quarterly' = 'monthly'
+    period: 'daily' | 'weekly' | 'monthly' | 'quarterly' = 'monthly',
+    useCache: boolean = true
   ): Promise<TrendData> {
     try {
+      const effectiveSurveyId = surveyId || 0;
       const cacheKey = `trends_${period}_${categoryCode || 'all'}`;
 
       // Check cache first
-      const cachedResult = await this.getCachedMetric(surveyId || 0, cacheKey, categoryCode);
-      if (cachedResult) {
-        logger.debug('Returning cached trend analysis', { surveyId, categoryCode, period });
-        return cachedResult.metric_data;
+      if (useCache && effectiveSurveyId > 0) {
+        const cachedEntry = await this.cacheManager.get(effectiveSurveyId, cacheKey, categoryCode || null);
+        if (cachedEntry) {
+          logger.debug('Returning cached trend analysis', { surveyId, categoryCode, period });
+          return cachedEntry.metric_data as TrendData;
+        }
       }
 
       // Generate fresh trend analysis
       const trends = await this.generateTrendAnalysis(surveyId, categoryCode, period);
 
       // Cache the result
-      await this.cacheMetric(surveyId || 0, cacheKey, trends, categoryCode);
+      if (useCache && effectiveSurveyId > 0) {
+        await this.cacheManager.set(effectiveSurveyId, cacheKey, trends, categoryCode || null);
+      }
 
       return trends;
     } catch (error) {
@@ -141,20 +145,8 @@ export class AnalyticsService {
    */
   async invalidateCache(surveyId: number, metricName?: string): Promise<void> {
     try {
-      const connection = await this.connectionPool.connect();
-
-      let query = 'DELETE FROM analytics_cache WHERE survey_id = $1';
-      const params: any[] = [surveyId];
-
-      if (metricName) {
-        query += ' AND metric_name = $2';
-        params.push(metricName);
-      }
-
-      await connection.query(query, params);
-      connection.release();
-
-      logger.info('Cache invalidated', { surveyId, metricName });
+      await this.cacheManager.invalidate(surveyId, metricName);
+      logger.info('Cache invalidated via AnalyticsService', { surveyId, metricName });
     } catch (error) {
       logger.error('Failed to invalidate cache', { surveyId, metricName, error });
       throw error;
@@ -391,77 +383,4 @@ export class AnalyticsService {
     }
   }
 
-  /**
-   * Get cached metric
-   */
-  private async getCachedMetric(
-    surveyId: number,
-    metricName: string,
-    categoryFilter?: string
-  ): Promise<AnalyticsCache | null> {
-    const connection = await this.connectionPool.connect();
-
-    try {
-      let query = `
-        SELECT * FROM analytics_cache
-        WHERE survey_id = $1 AND metric_name = $2
-        AND (expires_at IS NULL OR expires_at > NOW())
-      `;
-      const params: any[] = [surveyId, metricName];
-
-      if (categoryFilter) {
-        query += ' AND category_filter = $3';
-        params.push(categoryFilter);
-      } else {
-        query += ' AND category_filter IS NULL';
-      }
-
-      const result = await connection.query(query, params);
-
-      return result.rows.length > 0 ? result.rows[0] : null;
-
-    } finally {
-      connection.release();
-    }
-  }
-
-  /**
-   * Cache metric data
-   */
-  private async cacheMetric(
-    surveyId: number,
-    metricName: string,
-    metricData: any,
-    categoryFilter?: string,
-    expiresInHours: number = 24
-  ): Promise<void> {
-    const connection = await this.connectionPool.connect();
-
-    try {
-      const expiresAt = new Date();
-      expiresAt.setHours(expiresAt.getHours() + expiresInHours);
-
-      const query = `
-        INSERT INTO analytics_cache
-        (survey_id, metric_name, metric_data, category_filter, expires_at)
-        VALUES ($1, $2, $3, $4, $5)
-        ON CONFLICT (survey_id, metric_name, category_filter)
-        DO UPDATE SET
-          metric_data = EXCLUDED.metric_data,
-          generated_at = CURRENT_TIMESTAMP,
-          expires_at = EXCLUDED.expires_at
-      `;
-
-      await connection.query(query, [
-        surveyId,
-        metricName,
-        JSON.stringify(metricData),
-        categoryFilter || null,
-        expiresAt,
-      ]);
-
-    } finally {
-      connection.release();
-    }
-  }
 }
