@@ -23,15 +23,15 @@ export class AdminService {
   /**
    * Get dashboard statistics
    */
-  static async getDashboardStats(): Promise<ApiResponse<AdminStats>> {
-    return apiClient.get<ApiResponse<AdminStats>>(`${this.BASE_PATH}/stats`);
+  static async getDashboardStats(): Promise<AdminStats> {
+    return apiClient.get<AdminStats>(`${this.BASE_PATH}/stats`);
   }
 
   /**
    * Get recent activity
    */
-  static async getRecentActivity(limit = 10): Promise<ApiResponse<RecentActivity[]>> {
-    return apiClient.get<ApiResponse<RecentActivity[]>>(`${this.BASE_PATH}/activity`, {
+  static async getRecentActivity(limit = 10): Promise<RecentActivity[]> {
+    return apiClient.get<RecentActivity[]>(`${this.BASE_PATH}/activity`, {
       params: { limit }
     });
   }

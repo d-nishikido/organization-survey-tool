@@ -25,13 +25,8 @@ export function AdminDashboard(): JSX.Element {
             AdminService.getRecentActivity(5)
           ]);
 
-          if (statsResponse.data) {
-            setStats(statsResponse.data);
-          }
-
-          if (activityResponse.data) {
-            setRecentActivity(activityResponse.data);
-          }
+          setStats(statsResponse);
+          setRecentActivity(activityResponse);
         } catch (apiError) {
           console.warn('API not available, falling back to mock data:', apiError);
 
