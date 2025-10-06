@@ -116,26 +116,6 @@ export const analyticsRoutes: FastifyPluginAsync = async (fastify: FastifyInstan
   fastify.get(
     '/analytics/summary',
     {
-      schema: {
-        description: 'Get analytics summary for a survey',
-        tags: ['analytics'],
-        querystring: AnalyticsQuerySchema,
-        response: {
-          200: SummaryResponseSchema,
-          404: {
-            type: 'object',
-            properties: {
-              error: {
-                type: 'object',
-                properties: {
-                  code: { type: 'string' },
-                  message: { type: 'string' },
-                },
-              },
-            },
-          },
-        },
-      },
       preHandler: [validateQuery(AnalyticsQuerySchema)],
     },
     async (request, reply) => {
@@ -169,14 +149,6 @@ export const analyticsRoutes: FastifyPluginAsync = async (fastify: FastifyInstan
   fastify.get(
     '/analytics/trends',
     {
-      schema: {
-        description: 'Get trend analysis for surveys',
-        tags: ['analytics'],
-        querystring: TrendsQuerySchema,
-        response: {
-          200: TrendsResponseSchema,
-        },
-      },
       preHandler: [validateQuery(TrendsQuerySchema)],
     },
     async (request, reply) => {
@@ -201,14 +173,6 @@ export const analyticsRoutes: FastifyPluginAsync = async (fastify: FastifyInstan
   fastify.get(
     '/analytics/categories',
     {
-      schema: {
-        description: 'Get category-based analysis for a survey',
-        tags: ['analytics'],
-        querystring: CategoryQuerySchema,
-        response: {
-          200: CategoryAnalysisResponseSchema,
-        },
-      },
       preHandler: [validateQuery(CategoryQuerySchema)],
     },
     async (request, reply) => {
@@ -229,6 +193,8 @@ export const analyticsRoutes: FastifyPluginAsync = async (fastify: FastifyInstan
     },
   );
 
+  // TODO: Re-enable when ReportService dependencies are fixed
+  /*
   // Generate report
   fastify.post(
     '/analytics/reports/generate',
@@ -363,4 +329,5 @@ export const analyticsRoutes: FastifyPluginAsync = async (fastify: FastifyInstan
       }
     },
   );
+  */
 };
