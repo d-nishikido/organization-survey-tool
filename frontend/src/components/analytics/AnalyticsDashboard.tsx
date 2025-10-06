@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useQuery } from 'react-query';
 import { AdminLayout } from '@/components/admin';
 import { Card, Loading } from '@/components/ui';
 
 import { AnalyticsService } from '@/api/services/analyticsService';
+import { SurveyService } from '@/api/services/surveyService';
 import AnalyticsCards from './AnalyticsCards';
 import ChartComponents from './ChartComponents';
 import FilterPanel from './FilterPanel';
@@ -52,10 +53,23 @@ interface FilterState {
 
 const AnalyticsDashboard: React.FC = () => {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const [filters, setFilters] = useState<FilterState>({
     period: 'monthly',
     surveyId: searchParams.get('survey') ? parseInt(searchParams.get('survey')!) : undefined,
   });
+
+  // Fetch available surveys
+  const { data: surveysData, isLoading: surveysLoading } = useQuery(
+    ['surveys', { status: 'active' }],
+    async () => {
+      const response = await SurveyService.getSurveys({ status: 'active' });
+      return response;
+    },
+    {
+      staleTime: 10 * 60 * 1000, // 10 minutes
+    }
+  );
 
   // Fetch survey summary
   const { data: summaryData, isLoading: summaryLoading, error: summaryError, refetch: refetchSummary } = useQuery(
@@ -178,12 +192,63 @@ const AnalyticsDashboard: React.FC = () => {
     );
   }
 
-  // Show message if no survey selected
+  // Show survey selector if no survey selected
   if (!filters.surveyId || !summaryData) {
     return (
       <AdminLayout>
-        <div className="text-center py-8">
-          <p className="text-gray-600">調査を選択してください</p>
+        <div className="max-w-4xl mx-auto py-8">
+          <div className="bg-white shadow rounded-lg p-6">
+            <h2 className="text-xl font-bold text-gray-900 mb-4">
+              分析する調査を選択してください
+            </h2>
+            <p className="text-sm text-gray-600 mb-6">
+              分析ダッシュボードで表示する調査を選択してください。
+            </p>
+            
+            {surveysLoading ? (
+              <div className="flex justify-center py-8">
+                <Loading size="lg" />
+              </div>
+            ) : surveysData && surveysData.data && surveysData.data.length > 0 ? (
+              <div className="space-y-3">
+                {surveysData.data.map((survey: any) => (
+                  <button
+                    key={survey.id}
+                    onClick={() => {
+                      setFilters(prev => ({ ...prev, surveyId: survey.id }));
+                      navigate(`/admin/analytics?survey=${survey.id}`);
+                    }}
+                    className="w-full text-left p-4 border border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-colors"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1">
+                        <h3 className="font-medium text-gray-900">{survey.title}</h3>
+                        <p className="text-sm text-gray-500 mt-1">
+                          期間: {new Date(survey.start_date).toLocaleDateString('ja-JP')} 〜 
+                          {survey.end_date ? new Date(survey.end_date).toLocaleDateString('ja-JP') : '進行中'}
+                        </p>
+                        <p className="text-sm text-gray-500 mt-1">
+                          ステータス: {survey.status === 'active' ? 'アクティブ' : survey.status === 'draft' ? '下書き' : survey.status === 'closed' ? '終了' : survey.status}
+                        </p>
+                      </div>
+                      <div className="ml-4">
+                        <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
+                      </div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <p className="text-gray-500">アクティブな調査が見つかりません</p>
+                <p className="text-sm text-gray-400 mt-2">
+                  調査を作成してから分析ダッシュボードをご利用ください。
+                </p>
+              </div>
+            )}
+          </div>
         </div>
       </AdminLayout>
     );
