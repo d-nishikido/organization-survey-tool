@@ -37,10 +37,10 @@ export class AdminRepository extends BaseRepository<any> {
         SELECT
           COUNT(DISTINCT session_token) as total_responses,
           AVG(
-            EXTRACT(EPOCH FROM (submitted_at - created_at)) / 60
+            EXTRACT(EPOCH FROM (completed_at - started_at)) / 60
           )::numeric(10,1) as avg_completion_time
-        FROM survey_responses
-        WHERE submitted_at IS NOT NULL
+        FROM survey_progress
+        WHERE is_completed = true AND completed_at IS NOT NULL
       )
       SELECT
         COALESCE(ss.active_surveys, 0)::int as active_surveys,
@@ -99,19 +99,19 @@ export class AdminRepository extends BaseRepository<any> {
           'responses_received' as type,
           COUNT(DISTINCT session_token)::text || '件の新しい回答が収集されました' as title,
           CASE
-            WHEN MAX(submitted_at) > NOW() - INTERVAL '1 hour' THEN
-              EXTRACT(EPOCH FROM (NOW() - MAX(submitted_at)))::int / 60 || '分前'
-            WHEN MAX(submitted_at) > NOW() - INTERVAL '1 day' THEN
-              EXTRACT(EPOCH FROM (NOW() - MAX(submitted_at)))::int / 3600 || '時間前'
+            WHEN MAX(completed_at) > NOW() - INTERVAL '1 hour' THEN
+              EXTRACT(EPOCH FROM (NOW() - MAX(completed_at)))::int / 60 || '分前'
+            WHEN MAX(completed_at) > NOW() - INTERVAL '1 day' THEN
+              EXTRACT(EPOCH FROM (NOW() - MAX(completed_at)))::int / 3600 || '時間前'
             ELSE
-              EXTRACT(EPOCH FROM (NOW() - MAX(submitted_at)))::int / 86400 || '日前'
+              EXTRACT(EPOCH FROM (NOW() - MAX(completed_at)))::int / 86400 || '日前'
           END as description,
-          MAX(submitted_at) as timestamp,
+          MAX(completed_at) as timestamp,
           '✅' as icon
-        FROM survey_responses
-        WHERE submitted_at IS NOT NULL
+        FROM survey_progress
+        WHERE is_completed = true AND completed_at IS NOT NULL
         GROUP BY survey_id
-        ORDER BY MAX(submitted_at) DESC
+        ORDER BY MAX(completed_at) DESC
         LIMIT $1
       )
       SELECT * FROM (
