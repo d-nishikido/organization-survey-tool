@@ -3,9 +3,19 @@ import { Survey } from '@/types/survey';
 
 interface SurveyCardProps {
   survey: Survey;
+  isCompleted?: boolean;
+  isDeadlineNear?: boolean;
+  onClick?: (surveyId: string | number) => void;
+  variant?: 'default' | 'compact';
 }
 
-export function SurveyCard({ survey }: SurveyCardProps): JSX.Element {
+export function SurveyCard({
+  survey,
+  isCompleted = false,
+  isDeadlineNear = false,
+  onClick,
+  variant = 'default'
+}: SurveyCardProps): JSX.Element {
   const getStatusBadge = (status: Survey['status']) => {
     switch (status) {
       case 'active':
@@ -41,15 +51,30 @@ export function SurveyCard({ survey }: SurveyCardProps): JSX.Element {
     });
   };
 
+  const paddingClass = variant === 'compact' ? 'p-4' : 'p-6';
+  const opacityClass = isCompleted ? 'opacity-60' : '';
+
   return (
-    <div className="bg-white rounded-lg shadow-lg p-6 transition-shadow hover:shadow-xl">
-      <h3 className="text-xl font-semibold text-gray-800 mb-2">
-        {survey.title}
-      </h3>
+    <div className={`bg-white rounded-lg shadow-lg ${paddingClass} transition-shadow hover:shadow-xl ${opacityClass}`}>
+      <div className="flex items-start justify-between mb-2">
+        <h3 className="text-xl font-semibold text-gray-800">
+          {survey.title}
+        </h3>
+        {isCompleted && (
+          <span className="inline-block bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full ml-2 flex-shrink-0">
+            ✓ 回答済み
+          </span>
+        )}
+        {isDeadlineNear && !isCompleted && (
+          <span className="inline-block bg-orange-100 text-orange-800 text-xs px-2 py-1 rounded-full ml-2 flex-shrink-0">
+            ⚠ 期限間近
+          </span>
+        )}
+      </div>
       <p className="text-gray-600 mb-4 line-clamp-3">
         {survey.description || '説明がありません'}
       </p>
-      
+
       <div className="mb-4 space-y-2">
         {getStatusBadge(survey.status)}
         
@@ -80,12 +105,28 @@ export function SurveyCard({ survey }: SurveyCardProps): JSX.Element {
 
       <div className="flex space-x-2">
         {survey.status === 'active' ? (
-          <Link
-            to={`/survey/${survey.id}`}
-            className="flex-1 inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 transition-colors"
-          >
-            調査を開始
-          </Link>
+          isCompleted ? (
+            <button
+              disabled
+              className="flex-1 inline-flex justify-center items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-400 bg-gray-100 cursor-not-allowed"
+            >
+              調査を開始
+            </button>
+          ) : onClick ? (
+            <button
+              onClick={() => onClick(survey.id)}
+              className="flex-1 inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 transition-colors"
+            >
+              調査を開始
+            </button>
+          ) : (
+            <Link
+              to={`/survey/${survey.id}`}
+              className="flex-1 inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 transition-colors"
+            >
+              調査を開始
+            </Link>
+          )
         ) : (survey.status === 'closed' || survey.status === 'archived') ? (
           <Link
             to={`/results/${survey.id}`}
