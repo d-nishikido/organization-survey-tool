@@ -121,8 +121,8 @@
   - Tabキーによる論理的なナビゲーション順序
   - _要件: 5.4_
 
-- [ ] 8. ユニットテストを実装
-- [ ] 8.1 SessionManager のテストを作成
+- [x] 8. ユニットテストを実装
+- [x] 8.1 SessionManager のテストを作成
   - markCompleted機能のテスト
   - isCompleted機能のテスト
   - getSessions機能のテスト
@@ -130,7 +130,7 @@
   - LocalStorage利用不可時のフォールバックテスト
   - _テスト対象: SessionManager_
 
-- [ ] 8.2 useDashboardDataフックのテストを作成
+- [x] 8.2 useDashboardDataフックのテストを作成
   - 調査データとセッション状態の統合ロジックのテスト
   - 統計情報計算のテスト
   - 期限警告フラグ計算のテスト
@@ -138,7 +138,7 @@
   - React Queryキャッシュ動作のテスト
   - _テスト対象: useDashboardData_
 
-- [ ] 8.3 UIコンポーネントのテストを作成
+- [x] 8.3 UIコンポーネントのテストを作成
   - DashboardStatsCardの表示テスト
   - SurveyCardの回答済みバッジ・期限警告バッジ表示テスト
   - SurveyCardListのレスポンシブグリッドテスト
@@ -146,7 +146,7 @@
   - _テスト対象: DashboardStatsCard, SurveyCard, SurveyCardList_
 
 - [ ] 9. 統合テストを実装
-- [ ] 9.1 EmployeeDashboardPageの統合テストを作成
+- [x] 9.1 EmployeeDashboardPageの統合テストを作成
   - ページ全体のレンダリングとレイアウト統合のテスト
   - useDashboardDataフックとのデータ連携テスト
   - フィルタリング機能の動作テスト
