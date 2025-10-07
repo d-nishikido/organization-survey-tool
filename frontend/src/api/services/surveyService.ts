@@ -107,4 +107,6 @@ export class SurveyService {
   }
 }
 
+// Export both the class and a singleton instance
+export const surveyService = SurveyService;
 export default SurveyService;
