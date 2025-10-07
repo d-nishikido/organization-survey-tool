@@ -18,6 +18,7 @@ import { AnalyticsDashboard } from './components/analytics';
 import { QuestionManagement } from './pages/QuestionManagement';
 import { SurveyQuestionAssignmentDebug } from './pages/SurveyQuestionAssignmentDebug';
 import { SurveyQuestionAssignment } from './pages/SurveyQuestionAssignment';
+import { EmployeeDashboardPage } from './pages/EmployeeDashboardPage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -51,10 +52,7 @@ export function App(): JSX.Element {
                 path="/dashboard"
                 element={
                   <ProtectedRoute>
-                    <div className="p-8">
-                      <h1 className="text-2xl font-bold">ダッシュボード</h1>
-                      <p>認証ユーザー専用ページ（開発中）</p>
-                    </div>
+                    <EmployeeDashboardPage />
                   </ProtectedRoute>
                 }
               />
