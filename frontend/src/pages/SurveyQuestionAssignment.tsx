@@ -4,6 +4,7 @@ import { AdminLayout } from '@/components/admin';
 import { Card, Button, Input, Alert, Loading } from '@/components/ui';
 import { SurveyQuestionService } from '@/api/services/surveyQuestionService';
 import type { SurveyQuestion, SurveyQuestionsData } from '@/api/services/surveyQuestionService';
+import axios from 'axios';
 
 const QUESTION_TYPES = {
   text: 'テキスト（短文）',
@@ -25,6 +26,36 @@ const CATEGORIES = {
   6: 'ワークライフバランス',
   7: '自由記述',
 } as const;
+
+// エラー判別ヘルパー関数
+const getErrorMessage = (error: unknown): string => {
+  if (axios.isAxiosError(error)) {
+    if (!error.response) {
+      // ネットワークエラー
+      return 'ネットワークエラーが発生しました。接続を確認してください。';
+    }
+    
+    const status = error.response.status;
+    
+    if (status === 404) {
+      return '指定された調査または質問が見つかりません。';
+    } else if (status === 422) {
+      return 'この質問は既に割り当てられています。';
+    } else if (status >= 400 && status < 500) {
+      return 'リクエストが不正です。再度お試しください。';
+    } else if (status >= 500) {
+      return 'システムエラーが発生しました。しばらくしてから再度お試しください。';
+    }
+  }
+  
+  return '質問の割り当てに失敗しました。再度お試しください。';
+};
+
+// 状態管理のための型定義
+interface StateSnapshot {
+  assignedQuestions: SurveyQuestion[];
+  availableQuestions: SurveyQuestion[];
+}
 
 export function SurveyQuestionAssignment(): JSX.Element {
   const { surveyId } = useParams<{ surveyId: string }>();
@@ -69,6 +100,17 @@ export function SurveyQuestionAssignment(): JSX.Element {
     } finally {
       setLoading(false);
     }
+  };
+
+  // 状態管理ヘルパー関数
+  const saveStateSnapshot = (): StateSnapshot => ({
+    assignedQuestions: [...assignedQuestions],
+    availableQuestions: [...availableQuestions],
+  });
+
+  const restoreStateSnapshot = (snapshot: StateSnapshot): void => {
+    setAssignedQuestions(snapshot.assignedQuestions);
+    setAvailableQuestions(snapshot.availableQuestions);
   };
 
   const applyFilters = () => {
@@ -116,13 +158,16 @@ export function SurveyQuestionAssignment(): JSX.Element {
     
     if (!draggedItem || !surveyId) return;
 
+    // 状態スナップショットを保存（ロールバック用）
+    const snapshot = saveStateSnapshot();
+
     try {
       setSaving(true);
       
       const isReordering = assignedQuestions.some(q => q.id === draggedItem.id);
 
       if (isReordering) {
-        // Reordering existing assigned question
+        // 既存の割り当て済み質問の順序変更
         const newAssigned = [...assignedQuestions];
         const dragIndex = newAssigned.findIndex(q => q.id === draggedItem.id);
         const [removed] = newAssigned.splice(dragIndex, 1);
@@ -130,66 +175,83 @@ export function SurveyQuestionAssignment(): JSX.Element {
         const targetIndex = insertIndex !== undefined ? insertIndex : newAssigned.length;
         newAssigned.splice(targetIndex, 0, removed);
 
-        // Update order numbers
+        // 順序番号を更新（楽観的UI）
         const reordered = newAssigned.map((q, index) => ({ ...q, order_num: index + 1 }));
         setAssignedQuestions(reordered);
 
-        // Save to backend
+        // バックエンドに保存
         await saveQuestionOrder(reordered);
       } else {
-        // Assigning new question
+        // 新規質問の割り当て
         const newAssigned = [...assignedQuestions];
 
-        // Insert at position and update order numbers
+        // 指定位置に挿入し、順序番号を更新
         const insertPosition = insertIndex !== undefined ? insertIndex : newAssigned.length;
         const questionWithOrder = { ...draggedItem, order_num: insertPosition + 1 };
         newAssigned.splice(insertPosition, 0, questionWithOrder);
 
         const reordered = newAssigned.map((q, index) => ({ ...q, order_num: index + 1 }));
+        
+        // 楽観的UI更新
         setAssignedQuestions(reordered);
-
-        // Remove from available questions
         setAvailableQuestions(prev => prev.filter(q => q.id !== draggedItem.id));
 
-        // Save assignment to backend
+        // バックエンドに保存
         await assignQuestionToSurvey(reordered);
       }
     } catch (err) {
       console.error('Failed to handle drop:', err);
-      setError('質問の割り当てに失敗しました');
+      
+      // エラー時は状態をロールバック
+      restoreStateSnapshot(snapshot);
+      
+      // 具体的なエラーメッセージを表示
+      const errorMessage = getErrorMessage(err);
+      setError(errorMessage);
     } finally {
       setSaving(false);
       setDraggedItem(null);
     }
-  };
+  };;
 
   const handleDropToAvailable = async (e: React.DragEvent) => {
     e.preventDefault();
 
     if (!draggedItem || !assignedQuestions.some(q => q.id === draggedItem.id)) return;
 
+    // 状態スナップショットを保存（ロールバック用）
+    const snapshot = saveStateSnapshot();
+
     try {
       setSaving(true);
 
-      // Remove from assigned questions
+      // 割り当て済みリストから削除
       const newAssigned = assignedQuestions.filter(q => q.id !== draggedItem.id);
       const reordered = newAssigned.map((q, index) => ({ ...q, order_num: index + 1 }));
+      
+      // 楽観的UI更新
       setAssignedQuestions(reordered);
 
-      // Add to available questions
+      // 利用可能リストに追加
       const { order_num, ...questionWithoutOrder } = draggedItem;
       setAvailableQuestions(prev => [questionWithoutOrder, ...prev]);
 
-      // Update assignment in backend
+      // バックエンドに更新を保存
       await assignQuestionToSurvey(reordered);
     } catch (err) {
       console.error('Failed to unassign question:', err);
-      setError('質問の割り当て解除に失敗しました');
+      
+      // エラー時は状態をロールバック
+      restoreStateSnapshot(snapshot);
+      
+      // 具体的なエラーメッセージを表示
+      const errorMessage = getErrorMessage(err);
+      setError(errorMessage);
     } finally {
       setSaving(false);
       setDraggedItem(null);
     }
-  };
+  };;
 
   const assignQuestionToSurvey = async (questions: SurveyQuestion[]) => {
     if (!surveyId) return;
@@ -352,7 +414,7 @@ export function SurveyQuestionAssignment(): JSX.Element {
             <Card variant="default" padding="md">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-lg font-semibold text-gray-900">
-                  割り当て済み質問 ({assignedQuestions.length})
+                  割り当て済み質問
                 </h2>
                 {assignedQuestions.length > 0 && (
                   <Button variant="secondary" size="sm">
