@@ -314,13 +314,25 @@ export class SurveyService {
    */
   async updateQuestionOrder(surveyId: number, questions: { question_id: number; question_order: number }[]): Promise<void> {
     await db.transaction(async (query) => {
-      for (const q of questions) {
-        const updateQuery = `
+      // Step 1: 一時的にすべての順序を負の値に設定（ユニーク制約違反を回避）
+      for (let i = 0; i < questions.length; i++) {
+        const tempOrder = -(i + 1);
+        const tempUpdateQuery = `
           UPDATE survey_questions
           SET question_order = $1
           WHERE survey_id = $2 AND question_id = $3
         `;
-        await query(updateQuery, [q.question_order, surveyId, q.question_id]);
+        await query(tempUpdateQuery, [tempOrder, surveyId, questions[i].question_id]);
+      }
+
+      // Step 2: 正しい順序に更新
+      for (const q of questions) {
+        const finalUpdateQuery = `
+          UPDATE survey_questions
+          SET question_order = $1
+          WHERE survey_id = $2 AND question_id = $3
+        `;
+        await query(finalUpdateQuery, [q.question_order, surveyId, q.question_id]);
       }
     });
 
