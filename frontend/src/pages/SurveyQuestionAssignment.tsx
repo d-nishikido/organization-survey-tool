@@ -4,6 +4,8 @@ import { AdminLayout } from '@/components/admin';
 import { Card, Button, Input, Alert, Loading } from '@/components/ui';
 import { SurveyQuestionService } from '@/api/services/surveyQuestionService';
 import type { SurveyQuestion, SurveyQuestionsData } from '@/api/services/surveyQuestionService';
+import { categoryService } from '@/api/services/categoryService';
+import type { CategoryWithQuestionCount } from '@/types/category';
 import axios from 'axios';
 
 const QUESTION_TYPES = {
@@ -17,15 +19,6 @@ const QUESTION_TYPES = {
   yes_no: 'はい/いいえ',
 } as const;
 
-const CATEGORIES = {
-  1: 'ワークロード',
-  2: 'ストレス',
-  3: '玉余カメラ',
-  4: '満足度',
-  5: '成長機会',
-  6: 'ワークライフバランス',
-  7: '自由記述',
-} as const;
 
 // エラー判別ヘルパー関数
 const getErrorMessage = (error: unknown): string => {
@@ -62,6 +55,7 @@ export function SurveyQuestionAssignment(): JSX.Element {
   const [surveyData, setSurveyData] = useState<SurveyQuestionsData | null>(null);
   const [availableQuestions, setAvailableQuestions] = useState<SurveyQuestion[]>([]);
   const [assignedQuestions, setAssignedQuestions] = useState<SurveyQuestion[]>([]);
+  const [categories, setCategories] = useState<CategoryWithQuestionCount[]>([]);
 
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<string>('');
@@ -84,6 +78,20 @@ export function SurveyQuestionAssignment(): JSX.Element {
       applyFilters();
     }
   }, [surveyData, searchTerm, categoryFilter, typeFilter]);
+
+  useEffect(() => {
+    fetchCategories();
+  }, []);
+
+  const fetchCategories = async () => {
+    try {
+      const data = await categoryService.getCategories();
+      setCategories(data);
+    } catch (err) {
+      console.error('Failed to fetch categories:', err);
+      // カテゴリの取得失敗は致命的ではないので、エラー表示はしない
+    }
+  };
 
   const fetchSurveyQuestions = async () => {
     if (!surveyId) return;
@@ -111,6 +119,12 @@ export function SurveyQuestionAssignment(): JSX.Element {
   const restoreStateSnapshot = (snapshot: StateSnapshot): void => {
     setAssignedQuestions(snapshot.assignedQuestions);
     setAvailableQuestions(snapshot.availableQuestions);
+  };
+
+  // カテゴリIDからカテゴリ名を取得
+  const getCategoryName = (categoryId: number): string => {
+    const category = categories.find((c) => c.id === categoryId);
+    return category?.name || 'その他';
   };
 
   const applyFilters = () => {
@@ -384,7 +398,7 @@ export function SurveyQuestionAssignment(): JSX.Element {
                           <div className="flex-1">
                             <div className="flex items-center space-x-2 mb-1">
                               <span className="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded">
-                                {CATEGORIES[question.category_id] || 'その他'}
+                                {getCategoryName(question.category_id)}
                               </span>
                               <span className="px-2 py-1 text-xs font-medium bg-gray-100 text-gray-800 rounded">
                                 {QUESTION_TYPES[question.type]}
@@ -459,7 +473,7 @@ export function SurveyQuestionAssignment(): JSX.Element {
                             <div className="flex-1">
                               <div className="flex items-center space-x-2 mb-1">
                                 <span className="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded">
-                                  {CATEGORIES[question.category]}
+                                  {getCategoryName(question.category_id)}
                                 </span>
                                 <span className="px-2 py-1 text-xs font-medium bg-gray-100 text-gray-800 rounded">
                                   {QUESTION_TYPES[question.type]}
