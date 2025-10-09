@@ -15,6 +15,8 @@ const QUESTION_TYPES = {
   checkbox: '複数選択',
   select: 'プルダウン',
   rating: '評価',
+  rating_5: '評価（5段階）',
+  rating_10: '評価（10段階）',
   scale: 'スケール',
   yes_no: 'はい/いいえ',
 } as const;
