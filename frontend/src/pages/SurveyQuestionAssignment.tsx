@@ -346,8 +346,8 @@ export function SurveyQuestionAssignment(): JSX.Element {
                     onChange={(e) => setCategoryFilter(e.target.value)}
                   >
                     <option value="">すべてのカテゴリ</option>
-                    {Object.entries(CATEGORIES).map(([key, label]) => (
-                      <option key={key} value={key}>{label}</option>
+                    {categories.map((category) => (
+                      <option key={category.id} value={category.id.toString()}>{category.name}</option>
                     ))}
                   </select>
 
