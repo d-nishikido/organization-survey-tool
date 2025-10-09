@@ -28,6 +28,12 @@ const navigation: NavigationItem[] = [
     description: '質問の作成・編集・管理'
   },
   {
+    name: 'カテゴリ管理',
+    href: '/admin/categories',
+    icon: '📂',
+    description: '質問カテゴリの管理'
+  },
+  {
     name: '結果分析',
     href: '/admin/analytics',
     icon: '📈',

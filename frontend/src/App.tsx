@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from 'react-query';
 import { ThemeProvider } from '@/contexts/ThemeContext';
 import { AuthProvider } from '@/contexts/AuthContext';
+import { ToastProvider } from '@/contexts/ToastContext';
 import { ProtectedRoute, HRRoute } from '@components/auth/ProtectedRoute';
 import { HomePage } from './pages/HomePage';
 import { LoginPage } from './pages/LoginPage';
@@ -16,6 +17,7 @@ import { SurveyForm } from './components/admin/SurveyForm';
 import { SurveyPreview } from './components/admin/SurveyPreview';
 import { AnalyticsDashboard } from './components/analytics';
 import { QuestionManagement } from './pages/QuestionManagement';
+import { CategoryManagement } from './pages/CategoryManagement';
 import { SurveyQuestionAssignmentDebug } from './pages/SurveyQuestionAssignmentDebug';
 import { SurveyQuestionAssignment } from './pages/SurveyQuestionAssignment';
 import { EmployeeDashboardPage } from './pages/EmployeeDashboardPage';
@@ -35,7 +37,8 @@ export function App(): JSX.Element {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider defaultTheme="system">
         <AuthProvider>
-          <BrowserRouter>
+          <ToastProvider>
+            <BrowserRouter>
             <Routes>
               {/* Public Routes */}
               <Route path="/" element={<HomePage />} />
@@ -123,6 +126,14 @@ export function App(): JSX.Element {
                 }
               />
               <Route
+                path="/admin/categories"
+                element={
+                  <HRRoute>
+                    <CategoryManagement />
+                  </HRRoute>
+                }
+              />
+              <Route
                 path="/admin/surveys/:surveyId/questions"
                 element={
                   <HRRoute>
@@ -159,6 +170,7 @@ export function App(): JSX.Element {
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </BrowserRouter>
+          </ToastProvider>
         </AuthProvider>
       </ThemeProvider>
     </QueryClientProvider>
