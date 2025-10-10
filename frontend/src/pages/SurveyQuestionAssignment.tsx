@@ -6,6 +6,7 @@ import { SurveyQuestionService } from '@/api/services/surveyQuestionService';
 import type { SurveyQuestion, SurveyQuestionsData } from '@/api/services/surveyQuestionService';
 import { categoryService } from '@/api/services/categoryService';
 import type { CategoryWithQuestionCount } from '@/types/category';
+import { SurveyPreviewModal } from '@/components/admin/SurveyPreviewModal';
 import axios from 'axios';
 
 const QUESTION_TYPES = {
@@ -58,6 +59,9 @@ export function SurveyQuestionAssignment(): JSX.Element {
   const [availableQuestions, setAvailableQuestions] = useState<SurveyQuestion[]>([]);
   const [assignedQuestions, setAssignedQuestions] = useState<SurveyQuestion[]>([]);
   const [categories, setCategories] = useState<CategoryWithQuestionCount[]>([]);
+
+  // プレビューモーダルの開閉状態
+  const [isPreviewOpen, setIsPreviewOpen] = useState<boolean>(false);
 
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<string>('');
@@ -289,6 +293,19 @@ export function SurveyQuestionAssignment(): JSX.Element {
     setTypeFilter('');
   };
 
+  // プレビュー機能のハンドラー
+  const handleShowPreview = (): void => {
+    setIsPreviewOpen(true);
+  };
+
+  const handleClosePreview = (): void => {
+    setIsPreviewOpen(false);
+  };
+
+  const canPreview = (): boolean => {
+    return assignedQuestions.length > 0;
+  };
+
   if (!surveyId) {
     return (
       <AdminLayout>
@@ -303,13 +320,26 @@ export function SurveyQuestionAssignment(): JSX.Element {
     <AdminLayout>
       <div className="space-y-6">
         {/* Header */}
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">質問割り当て</h1>
-          {surveyData && (
-            <p className="text-sm text-gray-600">
-              調査「{surveyData.surveyTitle}」に質問を割り当て、順序を設定します
-            </p>
-          )}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">質問割り当て</h1>
+            {surveyData && (
+              <p className="text-sm text-gray-600">
+                調査「{surveyData.surveyTitle}」に質問を割り当て、順序を設定します
+              </p>
+            )}
+          </div>
+
+          {/* プレビューボタン */}
+          <Button
+            variant="secondary"
+            size="md"
+            onClick={handleShowPreview}
+            disabled={!canPreview()}
+            title={!canPreview() ? '質問を割り当ててください' : ''}
+          >
+            📋 プレビュー
+          </Button>
         </div>
 
         {error && (
@@ -432,11 +462,6 @@ export function SurveyQuestionAssignment(): JSX.Element {
                 <h2 className="text-lg font-semibold text-gray-900">
                   割り当て済み質問
                 </h2>
-                {assignedQuestions.length > 0 && (
-                  <Button variant="secondary" size="sm">
-                    プレビュー
-                  </Button>
-                )}
               </div>
 
               <div
@@ -519,6 +544,23 @@ export function SurveyQuestionAssignment(): JSX.Element {
           </div>
         </div>
       </div>
+
+      {/* プレビューモーダル */}
+      {surveyData && (
+        <SurveyPreviewModal
+          isOpen={isPreviewOpen}
+          onClose={handleClosePreview}
+          survey={{
+            id: parseInt(surveyData.surveyId),
+            title: surveyData.surveyTitle,
+            description: surveyData.surveyDescription,
+            start_date: surveyData.surveyStartDate || new Date().toISOString(),
+            end_date: surveyData.surveyEndDate || new Date().toISOString(),
+            is_anonymous: surveyData.surveyIsAnonymous ?? true,
+          }}
+          assignedQuestions={assignedQuestions}
+        />
+      )}
     </AdminLayout>
   );
 }

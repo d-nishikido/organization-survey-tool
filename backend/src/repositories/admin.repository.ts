@@ -117,12 +117,20 @@ export class AdminRepository extends BaseRepository<any> {
         GROUP BY survey_id
         ORDER BY MAX(created_at) DESC
         LIMIT $1
-      )
-      SELECT * FROM (
+      ),
+      combined AS (
         SELECT * FROM survey_created
         UNION ALL
         SELECT * FROM responses_received
-      ) combined
+      )
+      SELECT
+        ROW_NUMBER() OVER (ORDER BY timestamp DESC) as id,
+        type,
+        title,
+        description,
+        timestamp,
+        icon
+      FROM combined
       ORDER BY timestamp DESC
       LIMIT $1
     `;

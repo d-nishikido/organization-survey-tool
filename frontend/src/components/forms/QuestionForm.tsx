@@ -31,6 +31,7 @@ export function QuestionForm({
   const renderQuestionInput = () => {
     switch (question.type) {
       case 'multiple_choice':
+      case 'select':
         return (
           <MultipleChoiceQuestion
             question={question}
@@ -40,6 +41,7 @@ export function QuestionForm({
           />
         );
       case 'rating':
+      case 'rating_5':
         return (
           <RatingQuestion
             question={question}
@@ -49,6 +51,7 @@ export function QuestionForm({
           />
         );
       case 'scale':
+      case 'rating_10':
         return (
           <ScaleQuestion
             question={question}
@@ -58,6 +61,7 @@ export function QuestionForm({
           />
         );
       case 'text':
+      case 'textarea':
         return (
           <TextQuestion
             question={question}
@@ -67,6 +71,7 @@ export function QuestionForm({
           />
         );
       case 'yes_no':
+      case 'boolean':
         return (
           <YesNoQuestion
             question={question}
