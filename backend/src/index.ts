@@ -44,7 +44,7 @@ async function buildServer(): Promise<typeof server> {
 
   // Rate limiting
   await server.register(rateLimit, {
-    max: 100,
+    max: config.nodeEnv === 'production' ? 100 : 1000,
     timeWindow: '15 minutes',
   });
 
