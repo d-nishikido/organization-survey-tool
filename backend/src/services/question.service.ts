@@ -84,8 +84,14 @@ export class QuestionService {
       offset,
     ]);
 
+    // Map database types to frontend types
+    const mappedQuestions = questions.map(q => ({
+      ...q,
+      type: this.mapDbTypeToFrontend(q.type),
+    }));
+
     return {
-      data: questions,
+      data: mappedQuestions,
       total,
       page,
       pageSize,
@@ -115,7 +121,14 @@ export class QuestionService {
       WHERE q.id = $1
     `;
 
-    return await db.queryOne<QuestionResponse>(query, [id]);
+    const question = await db.queryOne<QuestionResponse>(query, [id]);
+    
+    // Map database type to frontend type
+    if (question) {
+      question.type = this.mapDbTypeToFrontend(question.type);
+    }
+    
+    return question;
   }
 
   /**
@@ -300,5 +313,20 @@ export class QuestionService {
     };
 
     return mapping[type] || type;
+  }
+
+  /**
+   * Map database question type to frontend type
+   */
+  private mapDbTypeToFrontend(dbType: string): string {
+    const mapping: Record<string, string> = {
+      text: 'text',
+      select: 'radio',
+      rating_5: 'rating_5',
+      rating_10: 'scale',
+      yes_no: 'boolean',
+    };
+
+    return mapping[dbType] || dbType;
   }
 }
