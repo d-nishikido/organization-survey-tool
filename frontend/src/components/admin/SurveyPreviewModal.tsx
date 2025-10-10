@@ -39,6 +39,144 @@ export const SurveyPreviewModal: React.FC<SurveyPreviewModalProps> = ({
     });
   };
 
+  const renderQuestionInput = (question: SurveyPreviewModalProps['assignedQuestions'][0]) => {
+    switch (question.type) {
+      case 'text':
+        return (
+          <input
+            type="text"
+            placeholder="回答を入力してください"
+            disabled
+            className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white text-gray-500"
+          />
+        );
+
+      case 'textarea':
+        return (
+          <textarea
+            placeholder="回答を入力してください"
+            disabled
+            rows={4}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white text-gray-500"
+          />
+        );
+
+      case 'radio':
+      case 'select':
+        if (question.options && question.options.length > 0) {
+          return (
+            <div className="space-y-2">
+              {question.options.map((option, idx) => (
+                <label key={idx} className="flex items-center space-x-2 cursor-not-allowed">
+                  <input
+                    type="radio"
+                    name={`question-${question.id}`}
+                    disabled
+                    className="w-4 h-4 text-blue-600"
+                  />
+                  <span className="text-gray-700">{option}</span>
+                </label>
+              ))}
+            </div>
+          );
+        }
+        return (
+          <div className="text-sm text-gray-500 italic">
+            選択肢が設定されていません
+          </div>
+        );
+
+      case 'checkbox':
+        if (question.options && question.options.length > 0) {
+          return (
+            <div className="space-y-2">
+              {question.options.map((option, idx) => (
+                <label key={idx} className="flex items-center space-x-2 cursor-not-allowed">
+                  <input
+                    type="checkbox"
+                    disabled
+                    className="w-4 h-4 text-blue-600 rounded"
+                  />
+                  <span className="text-gray-700">{option}</span>
+                </label>
+              ))}
+            </div>
+          );
+        }
+        return (
+          <div className="text-sm text-gray-500 italic">
+            選択肢が設定されていません
+          </div>
+        );
+
+      case 'scale':
+      case 'rating_5':
+      case 'rating_10':
+        // スケール質問の場合、1-5または1-10のラジオボタンを表示
+        const maxValue = question.type === 'rating_10' ? 10 : 5;
+        const scaleOptions = Array.from({ length: maxValue }, (_, i) => i + 1);
+        
+        return (
+          <div className="space-y-3">
+            <div className="flex items-center justify-between flex-wrap gap-2">
+              {scaleOptions.map((value) => (
+                <label
+                  key={value}
+                  className="flex flex-col items-center space-y-1 cursor-not-allowed"
+                >
+                  <input
+                    type="radio"
+                    name={`question-${question.id}`}
+                    disabled
+                    className="w-4 h-4 text-blue-600"
+                  />
+                  <span className="text-sm font-medium text-gray-700">{value}</span>
+                </label>
+              ))}
+            </div>
+            <div className="flex justify-between text-xs text-gray-500">
+              <span>低い</span>
+              <span>高い</span>
+            </div>
+          </div>
+        );
+
+      case 'boolean':
+      case 'yes_no':
+        return (
+          <div className="space-y-2">
+            <label className="flex items-center space-x-2 cursor-not-allowed">
+              <input
+                type="radio"
+                name={`question-${question.id}`}
+                disabled
+                className="w-4 h-4 text-blue-600"
+              />
+              <span className="text-gray-700">はい</span>
+            </label>
+            <label className="flex items-center space-x-2 cursor-not-allowed">
+              <input
+                type="radio"
+                name={`question-${question.id}`}
+                disabled
+                className="w-4 h-4 text-blue-600"
+              />
+              <span className="text-gray-700">いいえ</span>
+            </label>
+          </div>
+        );
+
+      default:
+        return (
+          <div className="p-3 bg-gray-50 rounded border border-gray-200">
+            <p className="text-sm text-gray-500">
+              回答欄（{question.type}）
+            </p>
+          </div>
+        );
+    }
+  };
+
   return (
     <Modal
       isOpen={isOpen}
@@ -125,11 +263,9 @@ export const SurveyPreviewModal: React.FC<SurveyPreviewModalProps> = ({
                     </div>
                   </div>
 
-                  {/* 質問タイプ別の表示は次のタスクで実装 */}
-                  <div className="mt-3 p-3 bg-gray-50 rounded border border-gray-200">
-                    <p className="text-sm text-gray-500">
-                      回答欄（{question.type}）
-                    </p>
+                  {/* 質問タイプ別の入力UI */}
+                  <div className="mt-4">
+                    {renderQuestionInput(question)}
                   </div>
                 </div>
               </Card>
