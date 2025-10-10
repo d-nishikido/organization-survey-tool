@@ -117,7 +117,7 @@ export class SurveyService {
         q.id,
         q.question_text as question,
         q.question_type as type,
-        sc.name as category,
+        COALESCE(sc.code, sc.name) as category,
         q.is_required,
         q.options,
         q.description,
