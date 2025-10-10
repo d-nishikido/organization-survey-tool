@@ -8,19 +8,7 @@ import { categoryService } from '@/api/services/categoryService';
 import type { CategoryWithQuestionCount } from '@/types/category';
 import { SurveyPreviewModal } from '@/components/admin/SurveyPreviewModal';
 import axios from 'axios';
-
-const QUESTION_TYPES = {
-  text: 'テキスト（短文）',
-  textarea: 'テキスト（長文）',
-  multiple_choice: '単一選択',
-  checkbox: '複数選択',
-  select: 'プルダウン',
-  rating: '評価',
-  rating_5: '評価（5段階）',
-  rating_10: '評価（10段階）',
-  scale: 'スケール',
-  yes_no: 'はい/いいえ',
-} as const;
+import { getQuestionTypeLabel } from '@/constants/questionTypes';
 
 
 // エラー判別ヘルパー関数
@@ -433,7 +421,7 @@ export function SurveyQuestionAssignment(): JSX.Element {
                                 {getCategoryName(question.category_id)}
                               </span>
                               <span className="px-2 py-1 text-xs font-medium bg-gray-100 text-gray-800 rounded">
-                                {QUESTION_TYPES[question.type]}
+                                {getQuestionTypeLabel(question.type)}
                               </span>
                               {question.is_required && (
                                 <span className="px-2 py-1 text-xs font-medium bg-red-100 text-red-800 rounded">

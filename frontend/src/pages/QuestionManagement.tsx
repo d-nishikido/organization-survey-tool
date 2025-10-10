@@ -4,20 +4,7 @@ import { Card, Button, Input, Modal, Alert, Loading } from '@/components/ui';
 import { FormField, ValidationMessage } from '@/components/forms';
 import { questionService } from '@/api/services/questionService';
 import type { QuestionResponse, CreateQuestionDto, QuestionQuery } from '@/types/question';
-
-const QUESTION_TYPES = {
-  text: 'テキスト（短文）',
-  textarea: 'テキスト（長文）',
-  radio: '単一選択',
-  checkbox: '複数選択',
-  select: 'プルダウン',
-  rating: '評価',
-  rating_5: '評価（5段階）',
-  rating_10: '評価（10段階）',
-  scale: 'スケール',
-  yes_no: 'はい/いいえ',
-  boolean: 'はい/いいえ',
-} as const;
+import { ACTIVE_QUESTION_TYPES, getQuestionTypeLabel } from '@/constants/questionTypes';
 
 // Updated to match database category codes
 const CATEGORIES = {
@@ -32,7 +19,7 @@ const CATEGORIES = {
 
 interface QuestionFormData {
   question: string;
-  type: keyof typeof QUESTION_TYPES;
+  type: keyof typeof ACTIVE_QUESTION_TYPES;
   category: keyof typeof CATEGORIES;
   is_required: boolean;
   options: string[];
@@ -316,7 +303,7 @@ export function QuestionManagement(): JSX.Element {
                 onChange={(e) => setTypeFilter(e.target.value)}
               >
                 <option value="">すべてのタイプ</option>
-                {Object.entries(QUESTION_TYPES).map(([key, label]) => (
+                {Object.entries(ACTIVE_QUESTION_TYPES).map(([key, label]) => (
                   <option key={key} value={key}>{label}</option>
                 ))}
               </select>
@@ -370,7 +357,7 @@ export function QuestionManagement(): JSX.Element {
                           {question.category ? CATEGORIES[question.category as keyof typeof CATEGORIES] || question.category : '未分類'}
                         </span>
                         <span className="px-2 py-1 text-xs font-medium bg-gray-100 text-gray-800 rounded">
-                          {QUESTION_TYPES[question.type] || question.type}
+                          {getQuestionTypeLabel(question.type)}
                         </span>
                         {question.is_required && (
                           <span className="px-2 py-1 text-xs font-medium bg-red-100 text-red-800 rounded">
@@ -537,9 +524,19 @@ export function QuestionManagement(): JSX.Element {
                 <select
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   value={formData.type}
-                  onChange={(e) => setFormData(prev => ({ ...prev, type: e.target.value as any }))}
+                  onChange={(e) => {
+                    const newType = e.target.value as keyof typeof ACTIVE_QUESTION_TYPES;
+                    setFormData(prev => ({
+                      ...prev,
+                      type: newType,
+                      ...(newType === 'scale' && {
+                        min_value: prev.min_value ?? 1,
+                        max_value: prev.max_value ?? 5,
+                      }),
+                    }));
+                  }}
                 >
-                  {Object.entries(QUESTION_TYPES).map(([key, label]) => (
+                  {Object.entries(ACTIVE_QUESTION_TYPES).map(([key, label]) => (
                     <option key={key} value={key}>{label}</option>
                   ))}
                 </select>
