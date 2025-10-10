@@ -15,6 +15,8 @@ Kiro-style Spec Driven Development implementation using claude code slash comman
 **Specs** (`.kiro/specs/`) - Formalize development process for individual features
 
 ### Active Specifications
+- `question-assignment-fix` - 質問割り当て機能の不具合修正（カウント表示削除、順序変更エラー修正）
+- `survey-preview-from-assignment` - 質問割り当て画面からの調査プレビュー機能（プレビューボタンあり）
 - Check `.kiro/specs/` for active specifications
 - Use `/kiro:spec-status [feature-name]` to check progress
 

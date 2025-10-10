@@ -2,17 +2,7 @@ import { useState, useEffect } from 'react';
 import { Card, Button, Input, Modal, Alert, Loading } from '../ui';
 import { FormField, ValidationMessage } from '../forms';
 import type { QuestionResponse, CreateQuestionDto, QuestionCategory, QuestionType } from '../../types/question';
-
-const QUESTION_TYPES = {
-  text: 'テキスト（短文）',
-  textarea: 'テキスト（長文）',
-  radio: '単一選択',
-  checkbox: '複数選択',
-  select: 'プルダウン',
-  rating: '評価',
-  scale: 'スケール',
-  boolean: 'はい/いいえ',
-} as const;
+import { ACTIVE_QUESTION_TYPES, getQuestionTypeLabel } from '../../constants/questionTypes';
 
 // Map database category codes to display labels
 const CATEGORIES: Record<QuestionCategory, string> = {
@@ -263,7 +253,7 @@ export function QuestionBank({ onQuestionSelect, selectionMode = false }: Questi
               onChange={(e) => setTypeFilter(e.target.value)}
             >
               <option value="">すべてのタイプ</option>
-              {Object.entries(QUESTION_TYPES).map(([key, label]) => (
+              {Object.entries(ACTIVE_QUESTION_TYPES).map(([key, label]) => (
                 <option key={key} value={key}>{label}</option>
               ))}
             </select>
@@ -308,7 +298,7 @@ export function QuestionBank({ onQuestionSelect, selectionMode = false }: Questi
                       {CATEGORIES[question.category]}
                     </span>
                     <span className="px-2 py-1 text-xs font-medium bg-gray-100 text-gray-800 rounded">
-                      {QUESTION_TYPES[question.type]}
+                      {getQuestionTypeLabel(question.type)}
                     </span>
                     {question.is_required && (
                       <span className="px-2 py-1 text-xs font-medium bg-red-100 text-red-800 rounded">
@@ -425,9 +415,19 @@ export function QuestionBank({ onQuestionSelect, selectionMode = false }: Questi
               <select
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 value={formData.type}
-                onChange={(e) => setFormData(prev => ({ ...prev, type: e.target.value as any }))}
+                onChange={(e) => {
+                  const newType = e.target.value as QuestionType;
+                  setFormData(prev => ({
+                    ...prev,
+                    type: newType,
+                    ...(newType === 'scale' && {
+                      min_value: prev.min_value ?? 1,
+                      max_value: prev.max_value ?? 5,
+                    }),
+                  }));
+                }}
               >
-                {Object.entries(QUESTION_TYPES).map(([key, label]) => (
+                {Object.entries(ACTIVE_QUESTION_TYPES).map(([key, label]) => (
                   <option key={key} value={key}>{label}</option>
                 ))}
               </select>

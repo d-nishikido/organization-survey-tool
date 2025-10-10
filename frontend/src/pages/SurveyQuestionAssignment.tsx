@@ -8,19 +8,7 @@ import { categoryService } from '@/api/services/categoryService';
 import type { CategoryWithQuestionCount } from '@/types/category';
 import { SurveyPreviewModal } from '@/components/admin/SurveyPreviewModal';
 import axios from 'axios';
-
-const QUESTION_TYPES = {
-  text: 'テキスト（短文）',
-  textarea: 'テキスト（長文）',
-  multiple_choice: '単一選択',
-  checkbox: '複数選択',
-  select: 'プルダウン',
-  rating: '評価',
-  rating_5: '評価（5段階）',
-  rating_10: '評価（10段階）',
-  scale: 'スケール',
-  yes_no: 'はい/いいえ',
-} as const;
+import { getQuestionTypeLabel } from '@/constants/questionTypes';
 
 
 // エラー判別ヘルパー関数
@@ -234,6 +222,81 @@ export function SurveyQuestionAssignment(): JSX.Element {
     }
   };;
 
+  // クリックで質問を割り当てる
+  const handleAssignQuestion = async (question: SurveyQuestion) => {
+    // draggedItemを設定してhandleDropToAssignedを呼び出す
+    setDraggedItem(question);
+    
+    // 状態スナップショットを保存（ロールバック用）
+    const snapshot = saveStateSnapshot();
+
+    try {
+      setSaving(true);
+
+      // 新しい順序番号を計算
+      const newOrderNum = assignedQuestions.length + 1;
+      const questionWithOrder = { ...question, order_num: newOrderNum };
+
+      // 割り当て済みリストに追加
+      const newAssigned = [...assignedQuestions, questionWithOrder];
+      const reordered = newAssigned.map((q, index) => ({ ...q, order_num: index + 1 }));
+      
+      // 楽観的UI更新
+      setAssignedQuestions(reordered);
+      setAvailableQuestions(prev => prev.filter(q => q.id !== question.id));
+
+      // バックエンドに保存
+      await assignQuestionToSurvey(reordered);
+    } catch (err) {
+      console.error('Failed to assign question:', err);
+      
+      // エラー時は状態をロールバック
+      restoreStateSnapshot(snapshot);
+      
+      // 具体的なエラーメッセージを表示
+      const errorMessage = getErrorMessage(err);
+      setError(errorMessage);
+    } finally {
+      setSaving(false);
+      setDraggedItem(null);
+    }
+  };
+
+  // クリックで質問の割り当てを解除する
+  const handleUnassignQuestion = async (question: SurveyQuestion) => {
+    // 状態スナップショットを保存（ロールバック用）
+    const snapshot = saveStateSnapshot();
+
+    try {
+      setSaving(true);
+
+      // 割り当て済みリストから削除
+      const newAssigned = assignedQuestions.filter(q => q.id !== question.id);
+      const reordered = newAssigned.map((q, index) => ({ ...q, order_num: index + 1 }));
+      
+      // 楽観的UI更新
+      setAssignedQuestions(reordered);
+
+      // 利用可能リストに追加
+      const { order_num, ...questionWithoutOrder } = question;
+      setAvailableQuestions(prev => [questionWithoutOrder, ...prev]);
+
+      // バックエンドに更新を保存
+      await assignQuestionToSurvey(reordered);
+    } catch (err) {
+      console.error('Failed to unassign question:', err);
+      
+      // エラー時は状態をロールバック
+      restoreStateSnapshot(snapshot);
+      
+      // 具体的なエラーメッセージを表示
+      const errorMessage = getErrorMessage(err);
+      setError(errorMessage);
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const handleDropToAvailable = async (e: React.DragEvent) => {
     e.preventDefault();
 
@@ -387,9 +450,14 @@ export function SurveyQuestionAssignment(): JSX.Element {
                     onChange={(e) => setTypeFilter(e.target.value)}
                   >
                     <option value="">すべてのタイプ</option>
-                    {Object.entries(QUESTION_TYPES).map(([key, label]) => (
-                      <option key={key} value={key}>{label}</option>
-                    ))}
+                    {/* フィルター用は全タイプを表示する必要があるため、ここでは簡易的な対応 */}
+                    <option value="text">テキスト（短文）</option>
+                    <option value="textarea">テキスト（長文）</option>
+                    <option value="radio">単一選択</option>
+                    <option value="checkbox">複数選択</option>
+                    <option value="select">プルダウン</option>
+                    <option value="scale">スケール</option>
+                    <option value="boolean">はい/いいえ</option>
                   </select>
                 </div>
 
@@ -424,16 +492,16 @@ export function SurveyQuestionAssignment(): JSX.Element {
                         key={question.id}
                         draggable
                         onDragStart={(e) => handleDragStart(e, question)}
-                        className="p-3 bg-white border border-gray-200 rounded-lg cursor-move hover:shadow-md transition-shadow"
+                        className="p-3 bg-white border border-gray-200 rounded-lg hover:shadow-md transition-shadow group"
                       >
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <div className="flex items-center space-x-2 mb-1">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center space-x-2 mb-1 flex-wrap">
                               <span className="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded">
                                 {getCategoryName(question.category_id)}
                               </span>
                               <span className="px-2 py-1 text-xs font-medium bg-gray-100 text-gray-800 rounded">
-                                {QUESTION_TYPES[question.type]}
+                                {getQuestionTypeLabel(question.type)}
                               </span>
                               {question.is_required && (
                                 <span className="px-2 py-1 text-xs font-medium bg-red-100 text-red-800 rounded">
@@ -443,8 +511,19 @@ export function SurveyQuestionAssignment(): JSX.Element {
                             </div>
                             <p className="text-sm text-gray-900">{question.text}</p>
                           </div>
-                          <div className="ml-2 text-gray-400">
-                            ⋮⋮
+                          
+                          <div className="flex items-center gap-2 flex-shrink-0">
+                            <button
+                              onClick={() => handleAssignQuestion(question)}
+                              className="px-3 py-1.5 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors text-sm font-medium flex items-center gap-1"
+                              title="この質問を割り当てる"
+                            >
+                              <span>追加</span>
+                              <span className="text-base">→</span>
+                            </button>
+                            <div className="text-gray-400 cursor-move">
+                              ⋮⋮
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -490,20 +569,20 @@ export function SurveyQuestionAssignment(): JSX.Element {
                         <div
                           draggable
                           onDragStart={(e) => handleDragStart(e, question)}
-                          className="p-3 bg-white border border-gray-200 rounded-lg cursor-move hover:shadow-md transition-shadow"
+                          className="p-3 bg-white border border-gray-200 rounded-lg hover:shadow-md transition-shadow group"
                         >
-                          <div className="flex items-start space-x-3">
+                          <div className="flex items-start gap-3">
                             <div className="flex-shrink-0 w-6 h-6 bg-blue-500 text-white text-xs rounded-full flex items-center justify-center font-medium">
                               {question.order_num}
                             </div>
                             
-                            <div className="flex-1">
-                              <div className="flex items-center space-x-2 mb-1">
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center space-x-2 mb-1 flex-wrap">
                                 <span className="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded">
                                   {getCategoryName(question.category_id)}
                                 </span>
                                 <span className="px-2 py-1 text-xs font-medium bg-gray-100 text-gray-800 rounded">
-                                  {QUESTION_TYPES[question.type]}
+                                  {getQuestionTypeLabel(question.type)}
                                 </span>
                                 {question.is_required && (
                                   <span className="px-2 py-1 text-xs font-medium bg-red-100 text-red-800 rounded">
@@ -514,8 +593,18 @@ export function SurveyQuestionAssignment(): JSX.Element {
                               <p className="text-sm text-gray-900">{question.text}</p>
                             </div>
                             
-                            <div className="ml-2 text-gray-400">
-                              ⋮⋮
+                            <div className="flex items-center gap-2 flex-shrink-0">
+                              <button
+                                onClick={() => handleUnassignQuestion(question)}
+                                className="px-3 py-1.5 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors text-sm font-medium flex items-center gap-1"
+                                title="この質問の割り当てを解除する"
+                              >
+                                <span className="text-base">←</span>
+                                <span>削除</span>
+                              </button>
+                              <div className="text-gray-400 cursor-move">
+                                ⋮⋮
+                              </div>
                             </div>
                           </div>
                         </div>
@@ -536,7 +625,7 @@ export function SurveyQuestionAssignment(): JSX.Element {
                 <div className="mt-4 p-3 bg-gray-50 rounded-lg">
                   <p className="text-sm text-gray-600">
                     💡 ヒント: 質問をドラッグして順序を変更できます。
-                    左の領域にドラッグすると割り当てを解除できます。
+                    「削除」ボタンまたは左の領域にドラッグすると割り当てを解除できます。
                   </p>
                 </div>
               )}
