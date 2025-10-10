@@ -462,11 +462,6 @@ export function SurveyQuestionAssignment(): JSX.Element {
                 <h2 className="text-lg font-semibold text-gray-900">
                   割り当て済み質問
                 </h2>
-                {assignedQuestions.length > 0 && (
-                  <Button variant="secondary" size="sm">
-                    プレビュー
-                  </Button>
-                )}
               </div>
 
               <div
