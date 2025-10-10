@@ -375,9 +375,14 @@ export function SurveyQuestionAssignment(): JSX.Element {
                     onChange={(e) => setTypeFilter(e.target.value)}
                   >
                     <option value="">すべてのタイプ</option>
-                    {Object.entries(QUESTION_TYPES).map(([key, label]) => (
-                      <option key={key} value={key}>{label}</option>
-                    ))}
+                    {/* フィルター用は全タイプを表示する必要があるため、ここでは簡易的な対応 */}
+                    <option value="text">テキスト（短文）</option>
+                    <option value="textarea">テキスト（長文）</option>
+                    <option value="radio">単一選択</option>
+                    <option value="checkbox">複数選択</option>
+                    <option value="select">プルダウン</option>
+                    <option value="scale">スケール</option>
+                    <option value="boolean">はい/いいえ</option>
                   </select>
                 </div>
 
@@ -491,7 +496,7 @@ export function SurveyQuestionAssignment(): JSX.Element {
                                   {getCategoryName(question.category_id)}
                                 </span>
                                 <span className="px-2 py-1 text-xs font-medium bg-gray-100 text-gray-800 rounded">
-                                  {QUESTION_TYPES[question.type]}
+                                  {getQuestionTypeLabel(question.type)}
                                 </span>
                                 {question.is_required && (
                                   <span className="px-2 py-1 text-xs font-medium bg-red-100 text-red-800 rounded">
