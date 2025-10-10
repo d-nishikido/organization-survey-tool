@@ -14,6 +14,10 @@ export interface SurveyQuestion {
 export interface SurveyQuestionsData {
   surveyId: string;
   surveyTitle: string;
+  surveyDescription?: string;
+  surveyStartDate?: string;
+  surveyEndDate?: string;
+  surveyIsAnonymous?: boolean;
   availableQuestions: SurveyQuestion[];
   assignedQuestions: SurveyQuestion[];
 }
@@ -43,6 +47,10 @@ export class SurveyQuestionService {
       return {
         surveyId,
         surveyTitle: survey?.title || `調査 ${surveyId}`,
+        surveyDescription: survey?.description,
+        surveyStartDate: survey?.start_date,
+        surveyEndDate: survey?.end_date,
+        surveyIsAnonymous: survey?.is_anonymous ?? true,
         availableQuestions: availableQuestions.map((q: any) => this.mapQuestionFromApi(q)),
         assignedQuestions: assignedQuestions.map((q: any, index: number) => ({
           ...this.mapQuestionFromApi(q),

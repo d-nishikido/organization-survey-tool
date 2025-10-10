@@ -556,12 +556,12 @@ export function SurveyQuestionAssignment(): JSX.Element {
           isOpen={isPreviewOpen}
           onClose={handleClosePreview}
           survey={{
-            id: surveyData.survey.id,
-            title: surveyData.survey.title,
-            description: surveyData.survey.description,
-            start_date: surveyData.survey.start_date,
-            end_date: surveyData.survey.end_date,
-            is_anonymous: surveyData.survey.is_anonymous,
+            id: parseInt(surveyData.surveyId),
+            title: surveyData.surveyTitle,
+            description: surveyData.surveyDescription,
+            start_date: surveyData.surveyStartDate || new Date().toISOString(),
+            end_date: surveyData.surveyEndDate || new Date().toISOString(),
+            is_anonymous: surveyData.surveyIsAnonymous ?? true,
           }}
           assignedQuestions={assignedQuestions}
         />
